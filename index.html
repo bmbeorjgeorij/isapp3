@@ -24,6 +24,15 @@
         function logout() {
             osql.logout();
         }
+
+        async function createRoom() {
+            var name = document.getElementById('roomname').value;
+            var sql = `insert into Rooms (name) values('${name}');`;
+            var roomId = await osql.connectInsert(sql);
+            console.log(roomId);
+
+            refreshRooms();
+        }
     </script>
 
 </head>
@@ -39,8 +48,10 @@
     <hr>
     <div>
         <a href="robby.html">robbyへ</a>
-        <a href="room.html">robbyへ</a>
     </div>
+
+    <button onclick="createRoom()">new room</button>
+    <button onclick="createRoom()">new room</button>
 </body>
 
 </html>
