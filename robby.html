@@ -8,6 +8,26 @@
     <script type="text/javascript" src="lib/jquery.min.js"></script>
     <script type="text/javascript" src="lib/osql.js"></script>
 
+    <style>
+        .center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .room-table {
+            border: 1px solid black;
+            margin-top: 20px;
+        }
+
+        .room-table th,
+        .room-table td {
+            padding: 10px;
+        }
+    </style>
+
     <script>
         osql.requireLogin();
 
@@ -73,17 +93,15 @@
 <body>
     <div style="text-align: center;">
         <h1>たけのこニョッキ </h1>
-    </div>
     <div style="text-align: right;">
         ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
         <a href="index.html">top</a>
     </div>
     <hr>
-
-    <div style="text-align: center;">
     <h2>roomを選ぶ</h2>
-    </div>
+    <div class="center">
     <div id="rooms"></div>
+    </div>
 </body>
 
 </html>
