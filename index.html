@@ -25,42 +25,27 @@
             osql.logout();
         }
 
-        async function createRoom1() {
-            var x = document.getElementById('roomname').value;
-            var sql = `insert into Rooms (name) values('${name}');`;
-            var roomId = await osql.connectInsert(sql);
-            console.log(roomId);
-
-            refreshRooms();
-        }
-
-        async function createRoom2() {
-            var name = document.getElementById('roomname').value;
-            var sql = `insert into Rooms (name) values('${name}');`;
-            var roomId = await osql.connectInsert(sql);
-            console.log(roomId);
-
-            refreshRooms();
-        }
+    function button1() {
+        var button = document.getElementById("nyo")
+            var linkurl ="robby.html"
+            window.location.href = linkurl;
+            }
+        
     </script>
 
 </head>
 
 <body>
     <div style="text-align: center;">
-    <h1>骨格診断 or パーソナルカラー診断</h1>
+    <h1>たけのこニョッキ </h1>
 </div>
     <div style="text-align: right;">
         ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
         <a href="javascript:logout()">logout</a>
     </div>
     <hr>
-    <div>
-        <a href="robby.html">robbyへ</a>
-    </div>
     <div style="text-align: center;">
-    <button onclick="createRoom1()">骨格診断</button>
-    <button onclick="createRoom2()">パーソナルカラー診断</button>
+    <button onclick="button1()">たけのこニョッキ</button>
 </div>
 </body>
 
