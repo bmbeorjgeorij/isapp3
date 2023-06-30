@@ -25,7 +25,16 @@
             osql.logout();
         }
 
-        async function createRoom() {
+        async function createRoom1() {
+            var x = document.getElementById('roomname').value;
+            var sql = `insert into Rooms (name) values('${name}');`;
+            var roomId = await osql.connectInsert(sql);
+            console.log(roomId);
+
+            refreshRooms();
+        }
+
+        async function createRoom2() {
             var name = document.getElementById('roomname').value;
             var sql = `insert into Rooms (name) values('${name}');`;
             var roomId = await osql.connectInsert(sql);
@@ -50,8 +59,8 @@
         <a href="robby.html">robbyへ</a>
     </div>
     <div style="text-align: center;">
-    <button onclick="createRoom()">骨格診断</button>
-    <button onclick="createRoom()">パーソナルカラー診断</button>
+    <button onclick="createRoom1()">骨格診断</button>
+    <button onclick="createRoom2()">パーソナルカラー診断</button>
 </div>
 </body>
 
