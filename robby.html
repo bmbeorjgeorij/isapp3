@@ -44,7 +44,7 @@
             x = 0;
             setInterval(refreshRooms, 1000); // 1秒ごとに更新
         });
-        
+
         $(document).ready(async function () {
             me = await osql.getMe();
             document.getElementById('firstname').innerHTML = me.fname;
@@ -76,20 +76,26 @@
                         break;
                     }
                 }
-                html += '<tr>';
-                html += `<td>${roomName}</td>`;
-                html += `<td>${numUsers}人</td>`;
-                if (numUsers < 5) {
-                    html += `<td><a href="room.html?roomId=${roomId}">入室</a></td>`;
-                } else {
-                    html += '<td>満員</td>';
-                }
-                html += '</tr>';
-            }
-            html += '</table>';
-            document.getElementById('rooms').innerHTML = html;
-        }
+                
+                updateRoom(roomId, roomName, numUsers);
+    }
+}
 
+function updateRoom(roomId, roomName, numUsers) {
+    var roomElement = document.getElementById(`room-${roomId}`);
+    if (roomElement) {
+        var numUsersElement = roomElement.querySelector('.num-users');
+        var statusElement = roomElement.querySelector('.status');
+
+        numUsersElement.textContent = `${numUsers}人`;
+
+        if (numUsers < 5) {
+            statusElement.innerHTML = `<a href="room.html?roomId=${roomId}">入室</a>`;
+        } else {
+            statusElement.textContent = '満員';
+        }
+    }
+}
 
 
     </script>
@@ -103,10 +109,36 @@
         ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
         <a href="index.html">top</a>
     </div>
-    <hr>
-    <h2>roomを選ぶ</h2>
     <div class="center">
-    <div id="rooms"></div>
+        <div id="rooms">
+            <table class="room-table">
+                <tr>
+                    <th>ルーム名</th>
+                    <th>参加人数</th>
+                    <th>入室状況</th>
+                </tr>
+                <tr id="room-1">
+                    <td>ルーム1</td>
+                    <td class="num-users"></td>
+                    <td class="status"></td>
+                </tr>
+                <tr id="room-2">
+                    <td>ルーム2</td>
+                    <td class="num-users"></td>
+                    <td class="status"></td>
+                </tr>
+                <tr id="room-3">
+                    <td>ルーム3</td>
+                    <td class="num-users"></td>
+                    <td class="status"></td>
+                </tr>
+                <tr id="room-4">
+                    <td>ルーム4</td>
+                    <td class="num-users"></td>
+                    <td class="status"></td>
+                </tr>
+            </table>
+        </div>
     </div>
 </body>
 
