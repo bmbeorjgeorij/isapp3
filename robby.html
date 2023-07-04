@@ -40,6 +40,11 @@
             "ルーム4"
         ];
 
+        $().ready (function(){
+            x = 0;
+            setInterval(refreshRooms, 1000); // 1秒ごとに更新
+        });
+        
         $(document).ready(async function () {
             me = await osql.getMe();
             document.getElementById('firstname').innerHTML = me.fname;
@@ -83,7 +88,6 @@
             }
             html += '</table>';
             document.getElementById('rooms').innerHTML = html;
-            setInterval(refreshRooms, 1000); // 1秒ごとに更新
         }
 
 
