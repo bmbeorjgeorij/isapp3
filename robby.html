@@ -44,9 +44,8 @@
             me = await osql.getMe();
             document.getElementById('firstname').innerHTML = me.fname;
             document.getElementById('lastname').innerHTML = me.lname;
-
+            setInterval(refreshRooms, 1000); // 1秒ごとに更新
             await refreshRooms();
-            setInterval(refreshRooms, 2000);
         });
 
         async function refreshRooms() {
@@ -84,7 +83,10 @@
             }
             html += '</table>';
             document.getElementById('rooms').innerHTML = html;
+            setInterval(refreshRooms, 1000); // 1秒ごとに更新
         }
+
+
 
     </script>
 
