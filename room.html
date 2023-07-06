@@ -1,33 +1,38 @@
 <!DOCTYPE html>
 <html>
+    
 <head>
+    <link rel="stylesheet" type="text/css" href="room.css">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <script type="text/javascript" src="lib/jquery.min.js"></script>
     <script type="text/javascript" src="lib/osql.js"></script>
     <script>
         osql.requireLogin();
 
-var me;
-var roomId = osql.getParam('roomId');
-var selectedNumber = null;
-var hasWon = false;
+        var me;
+        var roomId = osql.getParam('roomId');
+        var selectedNumber = null;
+        var hasWon = false;
 
-$(document).ready(async function () {
-    me = await osql.getMe();
-    document.getElementById('firstname').innerHTML = me.fname;
-    document.getElementById('lastname').innerHTML = me.lname;
+        $(document).ready(async function () {
+            me = await osql.getMe();
+            document.getElementById('firstname').innerHTML = me.fname;
+            document.getElementById('lastname').innerHTML = me.lname;
 
-    var sql = `select * from Rooms where id = ${roomId};`;
-    var objects = await osql.connect(sql);
+            var sql = `select * from Rooms where id = ${roomId};`;
+            var objects = await osql.connect(sql);
 
-    var room = objects[0];
-    document.getElementById('roomname').innerHTML = room.name;
+            var room = objects[0];
+            document.getElementById('roomname').innerHTML = room.name;
 
-    setInterval(refreshNumUsers, 1000); // 1秒ごとに参加人数を更新
-    await refreshNumUsers();
-});
+            setInterval(refreshNumUsers, 1000); // 1秒ごとに参加人数を更新
+            await refreshNumUsers();
 
-async function refreshNumUsers() {
+            // ボタンをクリックしたときの処理を設定
+            document.getElementById('selectNumberButton').addEventListener('click', selectNumber);
+        });
+
+        async function refreshNumUsers() {
             var sql = `
     SELECT Rooms.name, COUNT(*) AS numUsers
     FROM Rooms
@@ -42,57 +47,51 @@ document.getElementById('numUsers').innerHTML = `参加人数: ${room.numUsers}`
         }
 
 
-function selectNumber() {
-    // すでに数字が選択されているかチェック
-    if (selectedNumber !== null) {
-        displayMessage('すでに数字が選択されています');
-        return;
-    }
+        function selectNumber() {
+            // 選択した数字を取得
+            var numberInput = document.getElementById('numberInput');
+            var selectedValue = parseInt(numberInput.value);
 
-    // 参加者が選択した数字を取得
-    var selectedNumber = parseInt(document.getElementById('numberInput').value);
+            // 入力値のバリデーション
+            if (isNaN(selectedValue) || selectedValue < 1 || selectedValue > 5) {
+                displayMessage('1から5までの数字を入力してください');
+                return;
+            }
 
-    // 入力値のバリデーション
-    if (isNaN(selectedNumber) || selectedNumber < 1 || selectedNumber > 5) {
-        displayMessage('1から5までの数字を入力してください');
-        return;
-    }
+            if (selectedNumber === null) {
+                selectedNumber = selectedValue;
 
-    // 選択した数字を表示
-    displayMessage(`選択した数字: ${selectedNumber}`);
+                // 選択した数字を表示
+                displayMessage(`選択した数字: ${selectedNumber}`);
 
-    // 選択した数字が他の参加者と被っていないかチェック
-    checkIfNumberIsUnique(selectedNumber);
-}
+                // 選択した数字が他の参加者と被っていないかチェック
+                checkIfNumberIsUnique();
+            }
+        }
 
-async function checkIfNumberIsUnique(selectedNumber) {
-    var sql = `
-        SELECT COUNT(*) AS count
-        FROM Users
-        WHERE roomId = ${roomId}
-        AND username = '${selectedNumber}';
-    `;
-    var result = await osql.connect(sql);
-    var count = result[0].count;
+        async function checkIfNumberIsUnique() {
+            var sql = `select count(*) as count from Users where roomId = ${roomId} and id != '${me.id}' and username = '${selectedNumber}';`;
+            var result = await osql.connect(sql);
+            var count = result[0].count;
 
-    if (count > 0) {
-        // 数字が被っている場合は負けと表示
-        displayMessage('負け');
-    } else {
-        // 数字が被っていない場合は勝ちと表示
-        hasWon = true;
-        displayMessage('勝ち');
-    }
-}
+            if (count > 0) {
+                // 数字が被っている場合は負けと表示
+                displayMessage('負け');
+            } else {
+                // 数字が被っていない場合は勝ちと表示
+                hasWon = true;
+                displayMessage('勝ち');
+            }
+        }
 
-function displayMessage(message) {
-    document.getElementById('message').innerHTML = message;
-}
+        function displayMessage(message) {
+            document.getElementById('message').innerHTML = message;
+        }
     </script>
 </head>
 <body>
     <h1>room <span id="roomname"></span></h1>
-<div style="text-align: right;">
+<div class="player-info">
     ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
     <a href="index.html">top</a>
 </div>
@@ -105,5 +104,10 @@ function displayMessage(message) {
     <button id="selectNumberButton">選択</button>
 </div>
 <div id="message"></div>
+<div class="image-container">
+    <img src="character_takenoko.png" alt="写真" width="300" height="200">
+    <img src="character_takenoko.png" alt="写真" width="300" height="200">
+    <img src="character_takenoko.png" alt="写真" width="300" height="200">
+</div>
 </body>
 </html>

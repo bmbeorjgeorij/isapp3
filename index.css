@@ -1,0 +1,53 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #FCE2E2;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    color: #FF6F61;
+    font-size: 50px;
+}
+
+.center {
+    text-align: center;
+}
+
+button {
+    background-color: #FF6F61;
+    color: #FFF;
+    border: none;
+    padding: 10px 20px;
+    font-size: 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 50px;
+}
+
+.player-info {
+    text-align: right;
+    margin-bottom: 20px;
+    color: #FF6F61;
+  }
+
+  span {
+    font-weight: bold;
+    color: #FF6F61;
+  }
+
+  .image-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 70px;
+}
+
+.image-container img {
+  margin: 0 10px;
+}
+
+
+
+

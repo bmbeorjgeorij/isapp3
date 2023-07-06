@@ -3,30 +3,11 @@
 <html>
 
 <head>
+    <link rel="stylesheet" type="text/css" href="robby.css">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
     <script type="text/javascript" src="lib/jquery.min.js"></script>
     <script type="text/javascript" src="lib/osql.js"></script>
-
-    <style>
-        .center {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .room-table {
-            border: 1px solid black;
-            margin-top: 20px;
-        }
-
-        .room-table th,
-        .room-table td {
-            padding: 10px;
-        }
-    </style>
 
     <script>
         osql.requireLogin();
@@ -100,9 +81,10 @@ function updateRoom(roomId, roomName, numUsers) {
 <body>
     <div style="text-align: center;">
         <h1>たけのこニョッキ </h1>
-    <div style="text-align: right;">
+    <div class="player-info">
         ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
         <a href="index.html">top</a>
+        <hr>
     </div>
     <div class="center">
         <div id="rooms">
@@ -134,6 +116,11 @@ function updateRoom(roomId, roomName, numUsers) {
                 </tr>
             </table>
         </div>
+    </div>
+    <div class="image-container">
+        <img src="character_takenoko.png" alt="写真" width="300" height="200">
+        <img src="character_takenoko.png" alt="写真" width="300" height="200">
+        <img src="character_takenoko.png" alt="写真" width="300" height="200">
     </div>
 </body>
 
