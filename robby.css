@@ -35,7 +35,7 @@ body {
 }
 
 .room-table tr:nth-child(odd) {
-    background-color: #FCE2E2;
+    background-color: #e8a8a8;
 }
 
 .num-users {
@@ -86,4 +86,3 @@ body {
   .image-container img {
     margin: 0 10px;
   }
-  
