@@ -26,7 +26,6 @@
             document.getElementById('firstname').innerHTML = me.fname;
             document.getElementById('lastname').innerHTML = me.lname;
             setInterval(refreshRooms, 1000); // 1秒ごとに更新
-            await refreshRooms();
         });
 
         async function refreshRooms() {
@@ -35,7 +34,8 @@
                 FROM Rooms r
                 LEFT JOIN Users u ON r.id = u.roomId
                 GROUP BY r.id
-                LIMIT 4;
+                LIMIT 4
+                UPDATE Rooms SET numUsers = 0 WHERE id = [roomId];
             `;
             var objects = await osql.connect(sql);
             console.log(objects);

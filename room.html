@@ -42,8 +42,10 @@
 `;
 var result = await osql.connect(sql);
 var room = result[0];
+console.log(room);
 document.getElementById('roomname').innerHTML = room.name;
 document.getElementById('numUsers').innerHTML = `参加人数: ${room.numUsers}`;
+        console.log('参加人数: ${room.numUsers}');
         }
 
 
