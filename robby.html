@@ -34,9 +34,7 @@
                 FROM Rooms r
                 LEFT JOIN Users u ON r.id = u.roomId
                 GROUP BY r.id
-                LIMIT 4
-                UPDATE Rooms SET numUsers = 0 WHERE id = [roomId];
-            `;
+                LIMIT 4`;
             var objects = await osql.connect(sql);
             console.log(objects);
             var html = '';
@@ -53,8 +51,17 @@
                     }
                 }
                 
-                updateRoom(roomId, roomName, numUsers);
-    }
+                await updateRoom(roomId, roomName, numUsers);
+  }
+}
+
+async function updateRoom(roomId, roomName, numUsers) {
+  // roomIdに基づいて部屋の表示を更新する処理を実装する
+  // 例えば、以下のように更新する
+  var roomElement = document.getElementById('room-' + roomId);
+  if (roomElement) {
+    roomElement.innerHTML = `Room ${roomId}: ${roomName} (参加人数: ${numUsers})`;
+  }
 }
 
 function updateRoom(roomId, roomName, numUsers) {
