@@ -30,10 +30,7 @@
 
         async function refreshRooms() {
             var sql = `
-                SELECT r.id, r.name, COUNT(u.roomId) AS numUsers
-                FROM Rooms r
-                LEFT JOIN Users u ON r.id = u.roomId
-                GROUP BY r.id
+                select count(*) as numUsers from Users left join Rooms on Users.roomId = Rooms.id
                 LIMIT 4`;
             var objects = await osql.connect(sql);
             console.log(objects);
