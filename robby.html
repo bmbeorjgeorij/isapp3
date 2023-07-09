@@ -21,59 +21,65 @@
             "ルーム4"
         ];
 
+        $(document).ready(function () {
+            var fname = sessionStorage.getItem('fname');
+            var lname = sessionStorage.getItem('lname');
+            console.log(fname, lname);
+            // ここでfnameとlnameを使用して必要な処理を行います
+           
+        });
+
         $(document).ready(async function () {
             me = await osql.getMe();
             document.getElementById('firstname').innerHTML = me.fname;
             document.getElementById('lastname').innerHTML = me.lname;
             setInterval(refreshRooms, 1000); // 1秒ごとに更新
+            
         });
 
-        async function refreshRooms() {
-            var sql = `
-                select * a from Users left join Rooms on Users.roomId = Rooms.id
-                LIMIT 4`;
-            var objects = await osql.connect(sql);
-            console.log(objects);
-            var html = '';
-            html += '<table border="1">';
-            for (var i = 0; i < roomNames.length; i++) {
-                var roomId = i + 1;
-                var roomName = roomNames[i];
-                var numUsers = 0;
-                for (var j = 0; j < objects.length; j++) {
-                    var object = objects[j];
-                    if (object.id === roomId) {
-                        numUsers = object.numUsers;
-                        break;
-                    }
-                }
-                
-                await updateRoom(roomId, roomName, numUsers);
-  }
-}
+        async function updateRoom(roomId, roomName, fname) {
+            var roomElement = document.getElementById(`room-${roomId}`);
+            if (roomElement) {
+                var fnameElement = roomElement.querySelector('.fname');
+                var statusElement = roomElement.querySelector('.status');
 
-async function updateRoom(roomId, roomName, numUsers) {
-  // roomIdに基づいて部屋の表示を更新する処理を実装する
-  // 例えば、以下のように更新する
-  var roomElement = document.getElementById('room-' + roomId);
-  if (roomElement) {
-    roomElement.innerHTML = `Room ${roomId}: ${roomName} (参加人数: ${numUsers})`;
-  }
-}
-
-function updateRoom(roomId, roomName, numUsers) {
-    var roomElement = document.getElementById(`room-${roomId}`);
-    if (roomElement) {
-        var numUsersElement = roomElement.querySelector('.num-users');
-        var statusElement = roomElement.querySelector('.status');
-
-        numUsersElement.textContent = `${numUsers}人`;
-
-        if (numUsers < 5) {
-            statusElement.innerHTML = `<a href="room.html?roomId=${roomId}">入室</a>`;
-        } else {
-            statusElement.textContent = '満員';
+                if (fnameElement) {
+            fnameElement.textContent = fname;
         }
+
+        if (statusElement) {
+            if (fname === "") {
+                statusElement.textContent = '空室';
+            } else {
+                statusElement.innerHTML = `<a href="room.html?roomId=${roomId}">入室</a>`;
+            }
+        }
+    }
+}
+
+async function refreshRooms() {
+    var sql = `
+        select Users.id, Users.fname, Users.lname, Rooms.id AS roomId, Rooms.name
+        from Users
+        left join Rooms on Users.roomId = Rooms.id
+        LIMIT 4`;
+    var objects = await osql.connect(sql);
+    console.log(objects);
+    var html = '';
+    html += '<table border="1">';
+    for (var i = 0; i < roomNames.length; i++) {
+        var roomId = i + 1;
+        var roomName = roomNames[i];
+        var fname = "";
+        for (var j = 0; j < objects.length; j++) {
+            var object = objects[j];
+            if (object.roomId === roomId) {
+                fname = object.fname;
+                break;
+            }
+        }
+
+        updateRoom(roomId, roomName, fname);
     }
 }
 
