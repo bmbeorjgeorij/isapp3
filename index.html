@@ -16,24 +16,30 @@
             var me = await osql.getMe();
             console.log(me);
 
-            var username = me.fname + me.lname;
-            document.getElementById('firstname').innerHTML = me.fname;
-            document.getElementById('lastname').innerHTML = me.lname;
-            var sql = `insert ignore into Users values('${me.id}', '${me.fname}', '${me.lname}','${me.roomId}','${username}');`;
+            
+            var sql = `insert ignore into Users values('${me.id}', '${me.fname}', '${me.lname}');`;
             await osql.connect(sql);
+    
             
             
-            console.log(sql);
         });
 
         function logout() {
             osql.logout();
         }
 
+        
+
     function button1() {
-        var button = document.getElementById("nyo")
-            var linkurl ="robby.html"
-            window.location.href = linkurl;
+        var fname = document.getElementById('firstname').innerHTML;
+        var lname = document.getElementById('lastname').innerHTML;
+        
+        sessionStorage.setItem('fname', fname);
+        sessionStorage.setItem('lname', lname);
+        var linkurl = "robby.html";
+        window.location.href = linkurl;
+        
+       
             }
         
     </script>
@@ -50,6 +56,7 @@
     </div>
     <hr>
     <div style="text-align: center;">
+    <p>ユーザー名: <span id="username"></span></p> <!-- ユーザー名を表示 -->
     <button onclick="button1()">ゲームを始める</button>
     <div class="image-container">
         <img src="character_takenoko.png" alt="写真" width="300" height="200">
