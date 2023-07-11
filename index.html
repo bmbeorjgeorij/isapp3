@@ -41,6 +41,13 @@
        
             }
         
+            async function assignRoomId(userId) {
+            var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId IS NOT NULL;`;
+            var result = await osql.connect(sql);
+            var numUsers = result[0].numUsers;
+            var roomId = (numUsers % 4) + 1; // ユーザー数を4で割った余りに1を加えて、roomIdを1から4の範囲で割り当てる
+            return roomId;
+        }
     </script>
 
 </head>
