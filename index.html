@@ -15,14 +15,13 @@
         $(document).ready(async function () {
             var me = await osql.getMe();
             console.log(me);
-
-            
-            var sql = `insert ignore into Users values('${me.id}', '${me.fname}', '${me.lname}');`;
+            var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
+            var sql = `insert ignore into Users values('${me.id}', '${me.fname}', '${me.lname}','${me.roomId}','${username}');`;
             await osql.connect(sql);
-    
-            
-            
-        });
+            document.getElementById('firstname').innerHTML = me.fname;
+            document.getElementById('lastname').innerHTML = me.lname;
+            document.getElementById('username').innerHTML = username;
+});
 
         function logout() {
             osql.logout();

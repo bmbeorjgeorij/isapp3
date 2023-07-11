@@ -18,6 +18,8 @@
             me = await osql.getMe();
             document.getElementById('firstname').innerHTML = me.fname;
             document.getElementById('lastname').innerHTML = me.lname;
+            var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
+            document.getElementById('username').innerHTML = username;
 
             var sql = `select * from Rooms where id = ${roomId};`;
             var objects = await osql.connect(sql);
@@ -98,6 +100,7 @@
     <a href="index.html">top</a>
 </div>
 <hr>
+<p>ユーザー名: <span id="username"></span></p> <!-- ユーザー名を表示 -->
 <div id="numUsers"></div>
 <br>
 <div>
