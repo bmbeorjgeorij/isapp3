@@ -16,37 +16,36 @@
             var me = await osql.getMe();
             console.log(me);
             var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
-            var sql = `insert ignore into Users values('${me.id}', '${me.fname}', '${me.lname}','${me.roomId}','${username}');`;
+            var roomId = await assignRoomId(me.id);
+            var sql = `INSERT IGNORE INTO Users VALUES ('${me.id}', '${me.fname}', '${me.lname}', ${roomId}, '${username}');`;
             await osql.connect(sql);
             document.getElementById('firstname').innerHTML = me.fname;
             document.getElementById('lastname').innerHTML = me.lname;
             document.getElementById('username').innerHTML = username;
-});
+        });
 
         function logout() {
             osql.logout();
         }
 
-        
-
-    function button1() {
-        var fname = document.getElementById('firstname').innerHTML;
-        var lname = document.getElementById('lastname').innerHTML;
-        
-        sessionStorage.setItem('fname', fname);
-        sessionStorage.setItem('lname', lname);
-        var linkurl = "robby.html";
-        window.location.href = linkurl;
-        
-       
-            }
-        
-            async function assignRoomId(userId) {
-            var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId IS NOT NULL;`;
+        async function assignRoomId(userId) {
+            var sql = `
+                SELECT COUNT(*) AS numUsers FROM Users WHERE roomId IS NOT NULL;
+            `;
             var result = await osql.connect(sql);
             var numUsers = result[0].numUsers;
             var roomId = (numUsers % 4) + 1; // ユーザー数を4で割った余りに1を加えて、roomIdを1から4の範囲で割り当てる
             return roomId;
+        }
+
+        function button1() {
+            var fname = document.getElementById('firstname').innerHTML;
+            var lname = document.getElementById('lastname').innerHTML;
+            
+            sessionStorage.setItem('fname', fname);
+            sessionStorage.setItem('lname', lname);
+            var linkurl = "robby.html";
+            window.location.href = linkurl;
         }
     </script>
 
@@ -54,22 +53,22 @@
 
 <body>
     <div style="text-align: center;">
-    <h1>たけのこニョッキ </h1>
-</div>
+        <h1>たけのこニョッキ </h1>
+    </div>
     <div class="player-info">
         ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
         <a href="javascript:logout()">logout</a>
     </div>
     <hr>
     <div style="text-align: center;">
-    <p>ユーザー名: <span id="username"></span></p> <!-- ユーザー名を表示 -->
-    <button onclick="button1()">ゲームを始める</button>
-    <div class="image-container">
-        <img src="character_takenoko.png" alt="写真" width="300" height="200">
-        <img src="character_takenoko.png" alt="写真" width="300" height="200">
-        <img src="character_takenoko.png" alt="写真" width="300" height="200">
+        <p>ユーザー名: <span id="username"></span></p> <!-- ユーザー名を表示 -->
+        <button onclick="button1()">ゲームを始める</button>
+        <div class="image-container">
+            <img src="character_takenoko.png" alt="写真" width="300" height="200">
+            <img src="character_takenoko.png" alt="写真" width="300" height="200">
+            <img src="character_takenoko.png" alt="写真" width="300" height="200">
+        </div>
     </div>
-</div>
 </body>
 
 </html>
