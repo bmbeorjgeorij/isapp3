@@ -21,14 +21,6 @@
             "ルーム4"
         ];
 
-        $(document).ready(function () {
-            var fname = sessionStorage.getItem('fname');
-            var lname = sessionStorage.getItem('lname');
-            console.log(fname, lname);
-            // ここでfnameとlnameを使用して必要な処理を行います
-           
-        });
-
         $(document).ready(async function () {
             me = await osql.getMe();
             document.getElementById('firstname').innerHTML = me.fname;
@@ -38,7 +30,7 @@
 
         async function refreshRooms() {
             var sql = `
-                select *  from Users left join Rooms on Users.roomId = Rooms.id
+                select count(*) as numUsers from Users left join Rooms on Users.roomId = Rooms.id
                 LIMIT 4`;
             var objects = await osql.connect(sql);
             console.log(objects);

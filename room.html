@@ -31,23 +31,23 @@
             // ボタンをクリックしたときの処理を設定
             document.getElementById('selectNumberButton').addEventListener('click', selectNumber);
         });
-
+        
         async function refreshNumUsers() {
-            var sql = `
-    SELECT Rooms.name, COUNT(*) AS numUsers
-    FROM Rooms
-    LEFT JOIN Users ON Rooms.id = Users.roomId
-    WHERE Rooms.id = ${roomId} OR (Rooms.id IS NULL AND Users.id = '${me.id}')
-    GROUP BY Rooms.id;
-`;
-var result = await osql.connect(sql);
-var room = result[0];
-console.log(room);
-document.getElementById('roomname').innerHTML = room.name;
-document.getElementById('numUsers').innerHTML = `参加人数: ${room.numUsers}`;
-        console.log('参加人数: ${room.numUsers}');
-        }
-
+    var sql = `
+        SELECT Rooms.name, COUNT(*) AS numUsers
+        FROM Rooms
+        LEFT JOIN Users ON Rooms.id = Users.roomId
+        WHERE Rooms.id = ${roomId}
+        GROUP BY Rooms.id;
+    `;
+    var result = await osql.connect(sql);
+    var room = result[0];
+    console.log(room);
+    document.getElementById('roomname').innerHTML = room.name;
+    document.getElementById('numUsers').innerHTML = `参加人数: ${room.numUsers}`;
+    console.log('参加人数: ' + room.numUsers);
+}
+       
 
         function selectNumber() {
             // 選択した数字を取得
