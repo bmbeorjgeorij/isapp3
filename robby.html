@@ -39,7 +39,7 @@
 
         async function refreshRooms() {
             var sql = `
-                SELECT COUNT(*) AS numUsers, roomId FROM Users WHERE roomId IS NOT NULL GROUP BY roomId
+                SELECT roomId FROM Users WHERE roomId IS NOT NULL GROUP BY roomId
             `;
             var objects = await osql.connect(sql);
             console.log(objects);
@@ -48,27 +48,16 @@
             for (var i = 0; i < roomNames.length; i++) {
                 var roomId = i + 1;
                 var roomName = roomNames[i];
-                var numUsers = 0;
-                for (var j = 0; j < objects.length; j++) {
-                    var object = objects[j];
-                    if (object.roomId === roomId) {
-                        numUsers = object.numUsers;
-                        break;
-                    }
-                }
-                await updateRoom(roomId, roomName, numUsers);
+                await updateRoom(roomId, roomName);
             }
         }
 
-        async function updateRoom(roomId, roomName, numUsers) {
+        async function updateRoom(roomId, roomName) {
             var roomElement = document.getElementById(`room-${roomId}`);
             if (roomElement) {
-                var numUsersElement = roomElement.querySelector('.num-users');
                 var statusElement = roomElement.querySelector('.status');
 
-                numUsersElement.textContent = `${numUsers}人`;
-                        statusElement.innerHTML = `<a href="#" onclick="joinRoom(${roomId})">入室</a>`;
-                    
+                statusElement.innerHTML = `<a href="#" onclick="joinRoom(${roomId})">入室</a>`;
             }
         }
 
@@ -150,27 +139,22 @@
                 <table class="room-table">
                     <tr>
                         <th>ルーム名</th>
-                        <th>参加人数</th>
                         <th>入室状況</th>
                     </tr>
                     <tr id="room-1">
                         <td>ルーム1</td>
-                        <td class="num-users"></td>
                         <td class="status"></td>
                     </tr>
                     <tr id="room-2">
                         <td>ルーム2</td>
-                        <td class="num-users"></td>
                         <td class="status"></td>
                     </tr>
                     <tr id="room-3">
                         <td>ルーム3</td>
-                        <td class="num-users"></td>
                         <td class="status"></td>
                     </tr>
                     <tr id="room-4">
                         <td>たけ4</td>
-                        <td class="num-users"></td>
                         <td class="status"></td>
                     </tr>
                 </table>
