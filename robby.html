@@ -21,15 +21,15 @@
         ];
 
         $(document).ready(async function () {
-            me = await osql.getMe();
-            document.getElementById('firstname').innerHTML = me.fname;
-            document.getElementById('lastname').innerHTML = me.lname;
-            roomId = await getRoomId();
-            setInterval(refreshRooms, 1000); // 1秒ごとに更新
-            var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
-            document.getElementById('username').innerHTML = username;
-            showRoomMessage();
-        });
+    me = await osql.getMe();
+    document.getElementById('firstname').innerHTML = me.fname;
+    document.getElementById('lastname').innerHTML = me.lname;
+    setInterval(refreshRooms, 1000); // 1秒ごとに更新
+    var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
+    document.getElementById('username').innerHTML = username;
+    roomId = await getRoomId(); // getRoomId() の呼び出し位置を修正
+    showRoomMessage(); // showRoomMessage() を呼び出し
+});
 
         async function getRoomId() {
             var sql = `SELECT roomId FROM Users WHERE id = '${me.id}'`;
@@ -53,66 +53,45 @@
         }
 
         async function joinRoom(roomId) {
-    if (roomId === parseInt(getCurrentRoomId())) {
+    var currentRoomId = await getRoomId();
+    if (roomId === parseInt(currentRoomId)) { // ルームIDとして比較するためにparseInt()を使用
         var sql = `UPDATE Rooms SET numUsers = numUsers + 1 WHERE roomId = ${roomId}`;
+        var url = `room.html?roomId=${roomNames[roomId - 1]}`;
+        window.location.href = url;  // room.html にリダイレクト
         await osql.connect(sql);
+    } else {
+        alert('あなたはこのルームではありません。');
     }
 }
 
-        async function updateRoom(roomId, roomName) {
-            var roomElement = document.getElementById(`room-${roomId}`);
-            if (roomElement) {
-                var statusElement = roomElement.querySelector('.status');
 
-                statusElement.innerHTML = `<a href="#" onclick="joinRoom(${roomId})">入室</a>`;
-            }
-        }
-
-        function showRoomMessage() {
-            var roomMessageElement = document.getElementById('room-message');
-            if (roomMessageElement) {
-                if (roomId && roomId >= 1 && roomId <= roomNames.length) {
-                    roomMessageElement.textContent = `あなたは「${roomNames[roomId - 1]}」に入ってください。`;
-                    disableRoomLinksExcept(roomId);
-                } else {
-                    disableRoomLinks();
-                }
-            }
-        }
-
-        function getCurrentRoomId() {
+function getCurrentRoomId() {
             var urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('roomId');
         }
 
-        function joinRoom(roomId) {
-            if (roomId === parseInt(getCurrentRoomId())) {
-                alert('指定されたルームに入室しました。');
-            } else {
-                alert('あなたはこのルームではありません。');
-            }
+ function showRoomMessage() {
+    var roomMessageElement = document.getElementById('room-message');
+    if (roomMessageElement) {
+        if (roomId && roomId >= 1 && roomId <= roomNames.length) {
+            roomMessageElement.textContent = `あなたは「${roomNames[roomId - 1]}」に入ってください。`;
+            enableJoinButton(roomId);  // 指定されたルームにのみ入室可能なボタンを有効化
+            disableRoomLinksExcept(roomId);
+        } else {
+            roomMessageElement.textContent = 'あなたはこのルームではありません。';
+            disableRoomLinks();
         }
+    }
+}
 
-        function disableRoomLinksExcept(exceptRoomId) {
-            var roomLinks = document.querySelectorAll('.status a');
-            for (var i = 0; i < roomLinks.length; i++) {
-                var roomId = i + 1;
-                if (roomId !== exceptRoomId) {
-                    roomLinks[i].removeAttribute('href');
-                    roomLinks[i].style.pointerEvents = 'none';
-                    roomLinks[i].style.color = 'gray';
-                }
-            }
-        }
+async function updateRoom(roomId, roomName) {
+    var roomElement = document.getElementById(`room-${roomId}`);
+    if (roomElement) {
+        var statusElement = roomElement.querySelector('.status');
+        statusElement.innerHTML = `<a href="#" onclick="joinRoom(${roomId})">入室</a>`;
+    }
+}
 
-        function disableRoomLinks() {
-            var roomLinks = document.querySelectorAll('.status a');
-            for (var i = 0; i < roomLinks.length; i++) {
-                roomLinks[i].removeAttribute('href');
-                roomLinks[i].style.pointerEvents = 'none';
-                roomLinks[i].style.color = 'gray';
-            }
-        }
 
         function logout() {
             osql.logout();
@@ -121,7 +100,6 @@
         function button1() {
             var fname = document.getElementById('firstname').innerHTML;
             var lname = document.getElementById('lastname').innerHTML;
-
             sessionStorage.setItem('fname', fname);
             sessionStorage.setItem('lname', lname);
             var linkurl = "robby.html";
