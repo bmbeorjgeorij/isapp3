@@ -52,6 +52,13 @@
             }
         }
 
+        async function joinRoom(roomId) {
+    if (roomId === parseInt(getCurrentRoomId())) {
+        var sql = `UPDATE Rooms SET numUsers = numUsers + 1 WHERE roomId = ${roomId}`;
+        await osql.connect(sql);
+    }
+}
+
         async function updateRoom(roomId, roomName) {
             var roomElement = document.getElementById(`room-${roomId}`);
             if (roomElement) {
@@ -68,7 +75,6 @@
                     roomMessageElement.textContent = `あなたは「${roomNames[roomId - 1]}」に入ってください。`;
                     disableRoomLinksExcept(roomId);
                 } else {
-                    roomMessageElement.textContent = 'あなたはこのルームではありません。';
                     disableRoomLinks();
                 }
             }

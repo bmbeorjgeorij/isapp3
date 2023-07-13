@@ -29,6 +29,15 @@ $(document).ready(async function() {
   document.getElementById('username').innerHTML = username;
 });
 
+async function getAssignedRoomId(userId) {
+  var sql = `SELECT roomId FROM Users WHERE id = '${userId}'`;
+  var result = await osql.connect(sql);
+  if (result.length > 0) {
+    return result[0].roomId;
+  }
+  return null;
+}
+
 async function assignRoomId(userId) {
   var sql = `
     SELECT roomId, MIN(entry_timestamp) AS earliestTime
@@ -39,11 +48,15 @@ async function assignRoomId(userId) {
     LIMIT 1;
   `;
   var result = await osql.connect(sql);
-  var roomId = 1;
   if (result.length > 0) {
-    roomId = (result[0].roomId % 4) + 1;
+    roomId = result[0].roomId ;
   }
   return roomId;
+}
+
+async function updateRoomId(userId, roomId) {
+  var sql = `UPDATE Users SET roomId = ${roomId} WHERE id = '${userId}'`;
+  await osql.connect(sql);
 }
 
 function logout() {
