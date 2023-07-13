@@ -52,18 +52,27 @@
             }
         }
 
-        async function joinRoom(roomId) {
+    async function joinRoom(roomId) {
     var currentRoomId = await getRoomId();
-    if (roomId === parseInt(currentRoomId)) { // ルームIDとして比較するためにparseInt()を使用
-        var sql = `UPDATE Rooms SET numUsers = numUsers + 1 WHERE roomId = ${roomId}`;
+    if (roomId === parseInt(currentRoomId)) {
+        var sql = `SELECT COUNT(*) AS count FROM Users WHERE roomId = ${roomId}`;
+        var result = await osql.connect(sql);
+        var numUsers = result[0].count;
+        var sqlUpdate = `
+            UPDATE Rooms
+            SET numUsers = ${numUsers}, numCounts = numCounts + 1
+            WHERE roomId = ${roomId}
+        `;
         var url = `room.html?roomId=${roomNames[roomId - 1]}`;
-        window.location.href = url;  // room.html にリダイレクト
-        await osql.connect(sql);
+        window.location.href = url;
+        await osql.connect(sqlUpdate);
     } else {
         alert('あなたはこのルームではありません。');
     }
 }
 
+// numUsersは参加人数を表す
+// numCountsは入室された回数を表す
 
 function getCurrentRoomId() {
             var urlParams = new URLSearchParams(window.location.search);
