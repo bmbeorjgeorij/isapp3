@@ -40,12 +40,12 @@ async function getAssignedRoomId(userId) {
 
 async function assignRoomId(userId) {
   var sql = `
-    SELECT roomId, MIN(entry_timestamp) AS earliestTime
-    FROM Users
-    WHERE roomId IS NOT NULL
-    GROUP BY roomId
-    ORDER BY earliestTime ASC
-    LIMIT 1;
+  SELECT roomId, COUNT(*) AS userCount
+                FROM Users
+                WHERE roomId IS NOT NULL
+                GROUP BY roomId
+                ORDER BY userCount
+                LIMIT 1;
   `;
   var result = await osql.connect(sql);
             if (result.length > 0) {
