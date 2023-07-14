@@ -48,11 +48,13 @@ async function assignRoomId(userId) {
     LIMIT 1;
   `;
   var result = await osql.connect(sql);
-  if (result.length > 0) {
-    roomId = result[0].roomId ;
-  }
-  return roomId;
-}
+            if (result.length > 0) {
+                roomId = result[0].roomId + 1;
+            } else {
+                roomId = 1;
+            }
+            return roomId;
+        }
 
 async function updateRoomId(userId, roomId) {
   var sql = `UPDATE Users SET roomId = ${roomId} WHERE id = '${userId}'`;
