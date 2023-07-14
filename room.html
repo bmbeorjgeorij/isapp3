@@ -13,7 +13,7 @@ var roomId;
 var selectedNumber = null;
 var hasWon = false;
 var countdownInterval = null;
-var countdownSeconds = 30;
+var countdownSeconds = 15;
 var gameStarted = false; // ゲーム開始フラグ
 
 $(document).ready(async function () {
@@ -32,16 +32,8 @@ $(document).ready(async function () {
     setInterval(refreshNumUsers, 1000); // 1秒ごとに参加人数を更新
     await refreshNumUsers();
 
-    // ボタンをクリックしたときの処理を設定
-    document.getElementById('selectNumberButton').addEventListener('click', selectNumber);
-
-    // ゲーム開始時にデータをgameテーブルに挿入
-    await insertGameData();
-
-    // ゲーム開始の合図を受け取る
+    // ゲーム開始の合図を待つ
     await waitForGameStart();
-    // ゲーム開始
-    startGame();
 });
 
 // ゲーム開始の合図を待つ関数
@@ -50,23 +42,15 @@ async function waitForGameStart() {
     var result = await osql.connect(sql);
     var numUsers = result[0].numUsers;
 
-    // 参加人数が満たされるまでループ
-    while (!gameStarted) {
-        if (numUsers >= 2) {
-            // ゲーム開始の合図を送信
-            osql.broadcastMessage('gameStart', roomId);
-            gameStarted = true;
-        } else {
-            // 参加人数が足りない場合は一定時間待機
-            await sleep(1000); // 1秒待機
-        }
+    // 参加人数が2人以上の場合、ゲームを開始する
+    if (numUsers >= 2) {
+        gameStarted = true;
+        displayMessage('ゲーム開始です');
+        startCountdown();
+    } else {
+        // 参加人数が足りない場合は一定時間後に再試行する
+        setTimeout(waitForGameStart, 1000); // 1秒後に再試行
     }
-}
-
-// ゲーム開始時の処理
-function startGame() {
-    // カウントダウン開始
-    startCountdown();
 }
 
 // カウントダウン開始
@@ -74,7 +58,7 @@ function startCountdown() {
     var countdownElement = document.getElementById('countdown');
     countdownElement.innerHTML = countdownSeconds;
 
-    countdownInterval = setInterval(function() {
+    countdownInterval = setInterval(function () {
         countdownSeconds--;
         countdownElement.innerHTML = countdownSeconds;
 
@@ -83,20 +67,6 @@ function startCountdown() {
             evaluateResult();
         }
     }, 1000);
-}
-
-// 一定時間待機する関数
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// ゲームデータを挿入する関数
-async function insertGameData() {
-    var sql = `
-        INSERT INTO game (roomId, userId, time)
-        VALUES (${roomId}, '${me.id}', CURRENT_TIMESTAMP);
-    `;
-    await osql.connect(sql);
 }
 
 // ゲーム結果を評価する関数
@@ -111,84 +81,9 @@ function evaluateResult() {
     }
 }
 
-// メッセージの受信イベントを登録
-osql.onMessage(function (event) {
-    if (event.type === 'gameStart' && event.roomId === roomId) {
-        // ゲーム開始の合図を受け取ったらゲーム開始
-        startGame();
-    }
-});
-
-// ゲームデータを取得する関数
-async function getCurrentRoomId() {
-    var sql = `
-        SELECT roomId FROM Users WHERE id = '${me.id}';
-    `;
-    var result = await osql.connect(sql);
-    if (result.length > 0) {
-        return result[0].roomId;
-    }
-    return null;
-}
-
-// 参加人数を更新する関数
-async function refreshNumUsers() {
-    var sql = `
-        SELECT COUNT(*) AS numUsers
-        FROM Users
-        WHERE roomId = ${roomId};
-    `;
-    var result = await osql.connect(sql);
-    var numUsers = result[0].numUsers;
-    document.getElementById('numUsers').innerHTML = `参加人数: ${numUsers}`;
-}
-
-// 数字を選択する関数
-function selectNumber() {
-    // 選択した数字を取得
-    var numberInput = document.getElementById('numberInput');
-    var selectedValue = parseInt(numberInput.value);
-
-    // 入力値のバリデーション
-    if (isNaN(selectedValue) || selectedValue < 1 || selectedValue > 5) {
-        displayMessage('1から5までの数字を入力してください');
-        return;
-    }
-
-    if (selectedNumber === null) {
-        selectedNumber = selectedValue;
-
-        // 選択した数字を表示
-        displayMessage(`選択した数字: ${selectedNumber}`);
-
-        // 選択した数字が他の参加者と被っていないかチ
-
-checkIfNumberIsUnique();
-}
-}
-
-// 数字が被っていないかチェックする関数
-async function checkIfNumberIsUnique() {
-var sql = `SELECT COUNT(*) AS count FROM Users WHERE roomId = ${roomId} AND id != '${me.id}' AND username = '${selectedNumber}';`;
-var result = await osql.connect(sql);
-var count = result[0].count;
-
-if (count > 0) {
-    // 数字が被っている場合は負けと表示
-    displayMessage('負け');
-} else {
-    // 数字が被っていない場合は勝ちと表示
-    hasWon = true;
-    displayMessage('勝ち');
-}
-
-// カウントダウン終了後に勝敗を判定する
-setTimeout(evaluateResult, countdownSeconds * 1000);
-}
-
 // メッセージを表示する関数
 function displayMessage(message) {
-document.getElementById('message').innerHTML = message;
+    document.getElementById('message').innerHTML = message;
 }
     </script>
 </head>
