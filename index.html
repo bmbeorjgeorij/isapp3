@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
     <link rel="stylesheet" type="text/css" href="index.css">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -10,71 +8,73 @@
     <script type="text/javascript" src="lib/osql.js"></script>
 
     <script>
-       osql.requireLogin();
-
-$(document).ready(async function() {
-  var me = await osql.getMe();
-  console.log(me);
-  var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
-  var roomId = await assignRoomId(me.id);
-  var sql = `
-    INSERT INTO Users (id, fname, lname, roomId, username, entry_timestamp)
-    VALUES ('${me.id}', '${me.fname}', '${me.lname}', ${roomId}, '${username}', CURRENT_TIMESTAMP)
-    ON DUPLICATE KEY UPDATE
-    roomId = VALUES(roomId), entry_timestamp = VALUES(entry_timestamp);
-  `;
-  await osql.connect(sql);
-  document.getElementById('firstname').innerHTML = me.fname;
-  document.getElementById('lastname').innerHTML = me.lname;
-  document.getElementById('username').innerHTML = username;
-});
-
-async function getAssignedRoomId(userId) {
-  var sql = `SELECT roomId FROM Users WHERE id = '${userId}'`;
-  var result = await osql.connect(sql);
-  if (result.length > 0) {
-    return result[0].roomId;
+      osql.requireLogin();
+  
+      $(document).ready(async function() {
+          var me = await osql.getMe();
+          console.log(me);
+          var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
+          var roomId = await getAssignedRoomId();
+          var sql = `
+              INSERT INTO Users (id, fname, lname, roomId, username, entry_timestamp)
+              VALUES ('${me.id}', '${me.fname}', '${me.lname}', ${roomId}, '${username}', CURRENT_TIMESTAMP)
+              ON DUPLICATE KEY UPDATE
+              roomId = VALUES(roomId), entry_timestamp = VALUES(entry_timestamp);
+          `;
+          await osql.connect(sql);
+          document.getElementById('firstname').innerHTML = me.fname;
+          document.getElementById('lastname').innerHTML = me.lname;
+          document.getElementById('username').innerHTML = username;
+      });
+  
+      async function getAssignedRoomId() {
+  var usedRoomIds = await getUsedRoomIds();
+  var roomId = findAvailableRoomId(usedRoomIds);
+  if (roomId === null) {
+    // 利用可能なRoomIDがない場合は既存の最大のRoomIDに1を加え、4で割った余りを割り当てる
+    var maxRoomId = Math.max(...usedRoomIds);
+    roomId = (maxRoomId + 1) % 4;
+    if (roomId === 0) {
+      roomId = 4;
+    }
   }
-  return null;
+  return roomId;
 }
 
-async function assignRoomId(userId) {
+// 修正後のコード
+async function getUsedRoomIds() {
   var sql = `
-  SELECT roomId, COUNT(*) AS userCount
-                FROM Users
-                WHERE roomId IS NOT NULL
-                GROUP BY roomId
-                ORDER BY userCount
-                LIMIT 1;
+    SELECT DISTINCT roomId FROM Users ORDER BY entry_timestamp ASC;
   `;
   var result = await osql.connect(sql);
-            if (result.length > 0) {
-                roomId = result[0].roomId + 1;
-            } else {
-                roomId = 1;
-            }
+  var usedRoomIds = result.map(row => parseInt(row.roomId));
+  return usedRoomIds;
+}
+  
+      function findAvailableRoomId(usedRoomIds) {
+        var maxRoomId = 4; // 利用可能な最大のroomIdを指定
+  
+        for (var roomId = 1; roomId <= maxRoomId; roomId++) {
+          if (!usedRoomIds.includes(roomId)) {
             return roomId;
+          }
         }
-
-async function updateRoomId(userId, roomId) {
-  var sql = `UPDATE Users SET roomId = ${roomId} WHERE id = '${userId}'`;
-  await osql.connect(sql);
-}
-
-function logout() {
-  osql.logout();
-}
-
-function button1() {
-  var fname = document.getElementById('firstname').innerHTML;
-  var lname = document.getElementById('lastname').innerHTML;
-
-  sessionStorage.setItem('fname', fname);
-  sessionStorage.setItem('lname', lname);
-  var linkurl = "robby.html";
-  window.location.href = linkurl;
-}
-    </script>
+        return null; // 利用可能なroomIdが見つからない場合はnullを返す
+      }
+  
+      function logout() {
+          osql.logout();
+      }
+  
+      function button1() {
+          var fname = document.getElementById('firstname').innerHTML;
+          var lname = document.getElementById('lastname').innerHTML;
+          sessionStorage.setItem('fname', fname);
+          sessionStorage.setItem('lname', lname);
+          var linkurl = "robby.html";
+          window.location.href = linkurl;
+      }
+  </script>
 
 </head>
 
@@ -97,5 +97,4 @@ function button1() {
         </div>
     </div>
 </body>
-
 </html>

@@ -8,138 +8,188 @@
     <script>
         osql.requireLogin();
 
-        var me;
-        var roomId;
-        var selectedNumber = null;
-        var hasWon = false;
-        var countdownInterval = null;
-        var countdownSeconds = 30;
+var me;
+var roomId;
+var selectedNumber = null;
+var hasWon = false;
+var countdownInterval = null;
+var countdownSeconds = 30;
+var gameStarted = false; // ゲーム開始フラグ
 
-        $(document).ready(async function () {
-            me = await osql.getMe();
-            document.getElementById('firstname').innerHTML = me.fname;
-            document.getElementById('lastname').innerHTML = me.lname;
-            var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
-            document.getElementById('username').innerHTML = username;
+$(document).ready(async function () {
+    me = await osql.getMe();
+    document.getElementById('firstname').innerHTML = me.fname;
+    document.getElementById('lastname').innerHTML = me.lname;
+    var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
+    document.getElementById('username').innerHTML = username;
 
-            roomId = getCurrentRoomId();
-            var sql = `SELECT * FROM Rooms WHERE id = ${roomId}`;
-            var objects = await osql.connect(sql);
-            var room = objects[0];
-            document.getElementById('roomname').innerHTML = room.name;
+    roomId = getCurrentRoomId();
+    var sql = `SELECT * FROM Rooms WHERE id = ${roomId}`;
+    var objects = await osql.connect(sql);
+    var room = objects[0];
+    document.getElementById('roomname').innerHTML = room.name;
 
-            setInterval(refreshNumUsers, 1000); // 1秒ごとに参加人数を更新
-            await refreshNumUsers();
+    setInterval(refreshNumUsers, 1000); // 1秒ごとに参加人数を更新
+    await refreshNumUsers();
 
-            // ボタンをクリックしたときの処理を設定
-            document.getElementById('selectNumberButton').addEventListener('click', selectNumber);
+    // ボタンをクリックしたときの処理を設定
+    document.getElementById('selectNumberButton').addEventListener('click', selectNumber);
 
-            // ゲーム開始時にデータをgameテーブルに挿入
-            await insertGameData();
+    // ゲーム開始時にデータをgameテーブルに挿入
+    await insertGameData();
 
-            // カウントダウン開始
-            startCountdown();
-        });
+    // ゲーム開始の合図を受け取る
+    await waitForGameStart();
+    // ゲーム開始
+    startGame();
+});
 
-        function getCurrentRoomId() {
-            var urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('roomId');
+// ゲーム開始の合図を待つ関数
+async function waitForGameStart() {
+    var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId = ${roomId}`;
+    var result = await osql.connect(sql);
+    var numUsers = result[0].numUsers;
+
+    // 参加人数が満たされるまでループ
+    while (!gameStarted) {
+        if (numUsers >= 2) {
+            // ゲーム開始の合図を送信
+            osql.broadcastMessage('gameStart', roomId);
+            gameStarted = true;
+        } else {
+            // 参加人数が足りない場合は一定時間待機
+            await sleep(1000); // 1秒待機
         }
+    }
+}
 
-        async function refreshNumUsers() {
-            var sql = `
-                SELECT COUNT(*) AS numUsers
-                FROM Users
-                WHERE roomId = ${roomId};
-            `;
-            var result = await osql.connect(sql);
-            var numUsers = result[0].numUsers;
-            document.getElementById('numUsers').innerHTML = `参加人数: ${numUsers}`;
+// ゲーム開始時の処理
+function startGame() {
+    // カウントダウン開始
+    startCountdown();
+}
+
+// カウントダウン開始
+function startCountdown() {
+    var countdownElement = document.getElementById('countdown');
+    countdownElement.innerHTML = countdownSeconds;
+
+    countdownInterval = setInterval(function() {
+        countdownSeconds--;
+        countdownElement.innerHTML = countdownSeconds;
+
+        if (countdownSeconds <= 0) {
+            clearInterval(countdownInterval);
+            evaluateResult();
         }
+    }, 1000);
+}
 
-        async function insertGameData() {
-            var sql = `
-                INSERT INTO game (roomId, userId, time)
-                VALUES (${roomId}, '${me.id}', CURRENT_TIMESTAMP);
-            `;
-            await osql.connect(sql);
-        }
+// 一定時間待機する関数
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-        function selectNumber() {
-            // 選択した数字を取得
-            var numberInput = document.getElementById('numberInput');
-            var selectedValue = parseInt(numberInput.value);
+// ゲームデータを挿入する関数
+async function insertGameData() {
+    var sql = `
+        INSERT INTO game (roomId, userId, time)
+        VALUES (${roomId}, '${me.id}', CURRENT_TIMESTAMP);
+    `;
+    await osql.connect(sql);
+}
 
-            // 入力値のバリデーション
-            if (isNaN(selectedValue) || selectedValue < 1 || selectedValue > 5) {
-                displayMessage('1から5までの数字を入力してください');
-                return;
-            }
+// ゲーム結果を評価する関数
+function evaluateResult() {
+    if (selectedNumber === null) {
+        // 数字を選ばなかった場合は負けとする
+        displayMessage('負け');
+    } else if (hasWon) {
+        displayMessage('勝ち');
+    } else {
+        displayMessage('負け');
+    }
+}
 
-            if (selectedNumber === null) {
-                selectedNumber = selectedValue;
+// メッセージの受信イベントを登録
+osql.onMessage(function (event) {
+    if (event.type === 'gameStart' && event.roomId === roomId) {
+        // ゲーム開始の合図を受け取ったらゲーム開始
+        startGame();
+    }
+});
 
-                // 選択した数字を表示
-                displayMessage(`選択した数字: ${selectedNumber}`);
+// ゲームデータを取得する関数
+async function getCurrentRoomId() {
+    var sql = `
+        SELECT roomId FROM Users WHERE id = '${me.id}';
+    `;
+    var result = await osql.connect(sql);
+    if (result.length > 0) {
+        return result[0].roomId;
+    }
+    return null;
+}
 
-                // 選択した数字が他の参加者と被っていないかチェック
-                checkIfNumberIsUnique();
-            }
-        }
+// 参加人数を更新する関数
+async function refreshNumUsers() {
+    var sql = `
+        SELECT COUNT(*) AS numUsers
+        FROM Users
+        WHERE roomId = ${roomId};
+    `;
+    var result = await osql.connect(sql);
+    var numUsers = result[0].numUsers;
+    document.getElementById('numUsers').innerHTML = `参加人数: ${numUsers}`;
+}
 
-        async function checkIfNumberIsUnique() {
-            var sql = `
-                SELECT COUNT(*) AS count
-                FROM Users
-                WHERE roomId = ${roomId}
-                AND id != '${me.id}'
-                AND username = '${selectedNumber}';
-            `;
-            var result = await osql.connect(sql);
-            var count = result[0].count;
+// 数字を選択する関数
+function selectNumber() {
+    // 選択した数字を取得
+    var numberInput = document.getElementById('numberInput');
+    var selectedValue = parseInt(numberInput.value);
 
-            if (count > 0) {
-                // 数字が被っている場合は負けと表示
-                displayMessage('負け');
-            } else {
-                // 数字が被っていない場合は勝ちと表示
-                hasWon = true;
-                displayMessage('勝ち');
-            }
+    // 入力値のバリデーション
+    if (isNaN(selectedValue) || selectedValue < 1 || selectedValue > 5) {
+        displayMessage('1から5までの数字を入力してください');
+        return;
+    }
 
-            // カウントダウン終了後に勝敗を判定する
-            setTimeout(evaluateResult, countdownSeconds * 1000);
-        }
+    if (selectedNumber === null) {
+        selectedNumber = selectedValue;
 
-        function startCountdown() {
-            var countdownElement = document.getElementById('countdown');
-            countdownElement.innerHTML = countdownSeconds;
+        // 選択した数字を表示
+        displayMessage(`選択した数字: ${selectedNumber}`);
 
-            countdownInterval = setInterval(function() {
-                countdownSeconds--;
-                countdownElement.innerHTML = countdownSeconds;
+        // 選択した数字が他の参加者と被っていないかチ
 
-                if (countdownSeconds <= 0) {
-                    clearInterval(countdownInterval);
-                    evaluateResult();
-                }
-            }, 1000);
-        }
+checkIfNumberIsUnique();
+}
+}
 
-        function evaluateResult() {
-            if (selectedNumber === null) {
-                // 数字を選ばなかった場合は負けとする
-                displayMessage('負け');
-            } else if (hasWon) {
-                displayMessage('勝ち');
-            } else {
-                displayMessage('負け');
-            }
-        }
+// 数字が被っていないかチェックする関数
+async function checkIfNumberIsUnique() {
+var sql = `SELECT COUNT(*) AS count FROM Users WHERE roomId = ${roomId} AND id != '${me.id}' AND username = '${selectedNumber}';`;
+var result = await osql.connect(sql);
+var count = result[0].count;
 
-        function displayMessage(message) {
-            document.getElementById('message').innerHTML = message;
-        }
+if (count > 0) {
+    // 数字が被っている場合は負けと表示
+    displayMessage('負け');
+} else {
+    // 数字が被っていない場合は勝ちと表示
+    hasWon = true;
+    displayMessage('勝ち');
+}
+
+// カウントダウン終了後に勝敗を判定する
+setTimeout(evaluateResult, countdownSeconds * 1000);
+}
+
+// メッセージを表示する関数
+function displayMessage(message) {
+document.getElementById('message').innerHTML = message;
+}
     </script>
 </head>
 <body>
