@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
     <link rel="stylesheet" type="text/css" href="robby.css">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -13,6 +11,7 @@
         osql.requireLogin();
 
         var me;
+        var roomId;
 
         var roomNames = [
             "ルーム1",
@@ -22,16 +21,26 @@
         ];
 
         $(document).ready(async function () {
-            me = await osql.getMe();
-            document.getElementById('firstname').innerHTML = me.fname;
-            document.getElementById('lastname').innerHTML = me.lname;
-            setInterval(refreshRooms, 1000); // 1秒ごとに更新
-        });
+    me = await osql.getMe();
+    document.getElementById('firstname').innerHTML = me.fname;
+    document.getElementById('lastname').innerHTML = me.lname;
+    setInterval(refreshRooms, 1000); // 1秒ごとに更新
+    var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
+    document.getElementById('username').innerHTML = username;
+    roomId = await getRoomId(); // getRoomId() の呼び出し位置を修正
+    showRoomMessage(); // showRoomMessage() を呼び出し
+});
+
+        async function getRoomId() {
+            var sql = `SELECT roomId FROM Users WHERE id = '${me.id}'`;
+            var result = await osql.connect(sql);
+            return result[0].roomId;
+        }
 
         async function refreshRooms() {
             var sql = `
-                select count(*) as numUsers from Users left join Rooms on Users.roomId = Rooms.id
-                LIMIT 4`;
+                SELECT roomId FROM Users WHERE roomId IS NOT NULL GROUP BY roomId
+            `;
             var objects = await osql.connect(sql);
             console.log(objects);
             var html = '';
@@ -39,93 +48,116 @@
             for (var i = 0; i < roomNames.length; i++) {
                 var roomId = i + 1;
                 var roomName = roomNames[i];
-                var numUsers = 0;
-                for (var j = 0; j < objects.length; j++) {
-                    var object = objects[j];
-                    if (object.id === roomId) {
-                        numUsers = object.numUsers;
-                        break;
-                    }
-                }
-                
-                await updateRoom(roomId, roomName, numUsers);
-  }
+                await updateRoom(roomId, roomName);
+            }
+        }
+
+    async function joinRoom(roomId) {
+    var currentRoomId = await getRoomId();
+    if (roomId === parseInt(currentRoomId)) {
+        var sql = `SELECT COUNT(*) AS count FROM Users WHERE roomId = ${roomId}`;
+        var result = await osql.connect(sql);
+        var numUsers = result[0].count;
+        var sqlUpdate = `
+            UPDATE Rooms
+            SET numUsers = ${numUsers}, numCounts = numCounts + 1
+            WHERE roomId = ${roomId}
+        `;
+        var url = `room.html?roomId=${roomNames[roomId - 1]}`;
+        window.location.href = url;
+        await osql.connect(sqlUpdate);
+    } else {
+        alert('あなたはこのルームではありません。');
+    }
 }
 
-async function updateRoom(roomId, roomName, numUsers) {
-  // roomIdに基づいて部屋の表示を更新する処理を実装する
-  // 例えば、以下のように更新する
-  var roomElement = document.getElementById('room-' + roomId);
-  if (roomElement) {
-    roomElement.innerHTML = `Room ${roomId}: ${roomName} (参加人数: ${numUsers})`;
-  }
-}
+// numUsersは参加人数を表す
+// numCountsは入室された回数を表す
 
-function updateRoom(roomId, roomName, numUsers) {
-    var roomElement = document.getElementById(`room-${roomId}`);
-    if (roomElement) {
-        var numUsersElement = roomElement.querySelector('.num-users');
-        var statusElement = roomElement.querySelector('.status');
+function getCurrentRoomId() {
+            var urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('roomId');
+        }
 
-        numUsersElement.textContent = `${numUsers}人`;
-
-        if (numUsers < 5) {
-            statusElement.innerHTML = `<a href="room.html?roomId=${roomId}">入室</a>`;
+ function showRoomMessage() {
+    var roomMessageElement = document.getElementById('room-message');
+    if (roomMessageElement) {
+        if (roomId && roomId >= 1 && roomId <= roomNames.length) {
+            roomMessageElement.textContent = `あなたは「${roomNames[roomId - 1]}」に入ってください。`;
+            enableJoinButton(roomId);  // 指定されたルームにのみ入室可能なボタンを有効化
+            disableRoomLinksExcept(roomId);
         } else {
-            statusElement.textContent = '満員';
+            roomMessageElement.textContent = 'あなたはこのルームではありません。';
+            disableRoomLinks();
         }
     }
 }
 
+async function updateRoom(roomId, roomName) {
+    var roomElement = document.getElementById(`room-${roomId}`);
+    if (roomElement) {
+        var statusElement = roomElement.querySelector('.status');
+        statusElement.innerHTML = `<a href="#" onclick="joinRoom(${roomId})">入室</a>`;
+    }
+}
 
+
+        function logout() {
+            osql.logout();
+        }
+
+        function button1() {
+            var fname = document.getElementById('firstname').innerHTML;
+            var lname = document.getElementById('lastname').innerHTML;
+            sessionStorage.setItem('fname', fname);
+            sessionStorage.setItem('lname', lname);
+            var linkurl = "robby.html";
+            window.location.href = linkurl;
+        }
     </script>
 
 </head>
-
 <body>
     <div style="text-align: center;">
         <h1>たけのこニョッキ </h1>
-    <div class="player-info">
-        ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
-        <a href="index.html">top</a>
-        <hr>
-    </div>
-    <div class="center">
-        <div id="rooms">
-            <table class="room-table">
-                <tr>
-                    <th>ルーム名</th>
-                    <th>参加人数</th>
-                    <th>入室状況</th>
-                </tr>
-                <tr id="room-1">
-                    <td>たけ1</td>
-                    <td class="num-users"></td>
-                    <td class="status"></td>
-                </tr>
-                <tr id="room-2">
-                    <td>たけ2</td>
-                    <td class="num-users"></td>
-                    <td class="status"></td>
-                </tr>
-                <tr id="room-3">
-                    <td>たけ3</td>
-                    <td class="num-users"></td>
-                    <td class="status"></td>
-                </tr>
-                <tr id="room-4">
-                    <td>たけ4</td>
-                    <td class="num-users"></td>
-                    <td class="status"></td>
-                </tr>
-            </table>
+        <div class="player-info">
+            ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
+            <a href="index.html">top</a>
+            <hr>
+        </div>
+        <div class="center">
+            <p id="room-message"></p>
+            <p>ユーザー名: <span id="username"></span></p> <!-- ユーザー名を表示 -->
+            <div id="rooms">
+                <table class="room-table">
+                    <tr>
+                        <th>ルーム名</th>
+                        <th>入室状況</th>
+                    </tr>
+                    <tr id="room-1">
+                        <td>ルーム1</td>
+                        <td class="status"></td>
+                    </tr>
+                    <tr id="room-2">
+                        <td>ルーム2</td>
+                        <td class="status"></td>
+                    </tr>
+                    <tr id="room-3">
+                        <td>ルーム3</td>
+                        <td class="status"></td>
+                    </tr>
+                    <tr id="room-4">
+                        <td>ルーム4</td>
+                        <td class="status"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="image-container">
+            <img src="character_takenoko.png" alt="写真" width="300" height="200">
+            <img src="character_takenoko.png" alt="写真" width="300" height="200">
+            <img src="character_takenoko.png" alt="写真" width="300" height="200">
         </div>
     </div>
-    <div class="image-container">
-        <img src="character_takenoko.png" alt="写真" width="300" height="200">
-        <img src="character_takenoko.png" alt="写真" width="300" height="200">
-        <img src="character_takenoko.png" alt="写真" width="300" height="200">
-    </div>
 </body>
-
 </html>

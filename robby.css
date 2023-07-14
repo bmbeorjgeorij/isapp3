@@ -86,3 +86,15 @@ body {
   .image-container img {
     margin: 0 10px;
   }
+
+  button {
+    background-color: #FF6F61;
+    color: #FFF;
+    border: none;
+    padding: 10px 20px;
+    font-size: 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 50px;
+}

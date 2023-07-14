@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-    
 <head>
     <link rel="stylesheet" type="text/css" href="room.css">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -10,18 +9,22 @@
         osql.requireLogin();
 
         var me;
-        var roomId = osql.getParam('roomId');
+        var roomId;
         var selectedNumber = null;
         var hasWon = false;
+        var countdownInterval = null;
+        var countdownSeconds = 30;
 
         $(document).ready(async function () {
             me = await osql.getMe();
             document.getElementById('firstname').innerHTML = me.fname;
             document.getElementById('lastname').innerHTML = me.lname;
+            var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
+            document.getElementById('username').innerHTML = username;
 
-            var sql = `select * from Rooms where id = ${roomId};`;
+            roomId = getCurrentRoomId();
+            var sql = `SELECT * FROM Rooms WHERE id = ${roomId}`;
             var objects = await osql.connect(sql);
-
             var room = objects[0];
             document.getElementById('roomname').innerHTML = room.name;
 
@@ -30,24 +33,37 @@
 
             // ボタンをクリックしたときの処理を設定
             document.getElementById('selectNumberButton').addEventListener('click', selectNumber);
+
+            // ゲーム開始時にデータをgameテーブルに挿入
+            await insertGameData();
+
+            // カウントダウン開始
+            startCountdown();
         });
-        
+
+        function getCurrentRoomId() {
+            var urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('roomId');
+        }
+
         async function refreshNumUsers() {
-    var sql = `
-        SELECT Rooms.name, COUNT(*) AS numUsers
-        FROM Rooms
-        LEFT JOIN Users ON Rooms.id = Users.roomId
-        WHERE Rooms.id = ${roomId}
-        GROUP BY Rooms.id;
-    `;
-    var result = await osql.connect(sql);
-    var room = result[0];
-    console.log(room);
-    document.getElementById('roomname').innerHTML = room.name;
-    document.getElementById('numUsers').innerHTML = `参加人数: ${room.numUsers}`;
-    console.log('参加人数: ' + room.numUsers);
-}
-       
+            var sql = `
+                SELECT COUNT(*) AS numUsers
+                FROM Users
+                WHERE roomId = ${roomId};
+            `;
+            var result = await osql.connect(sql);
+            var numUsers = result[0].numUsers;
+            document.getElementById('numUsers').innerHTML = `参加人数: ${numUsers}`;
+        }
+
+        async function insertGameData() {
+            var sql = `
+                INSERT INTO game (roomId, userId, time)
+                VALUES (${roomId}, '${me.id}', CURRENT_TIMESTAMP);
+            `;
+            await osql.connect(sql);
+        }
 
         function selectNumber() {
             // 選択した数字を取得
@@ -72,7 +88,13 @@
         }
 
         async function checkIfNumberIsUnique() {
-            var sql = `select count(*) as count from Users where roomId = ${roomId} and id != '${me.id}' and username = '${selectedNumber}';`;
+            var sql = `
+                SELECT COUNT(*) AS count
+                FROM Users
+                WHERE roomId = ${roomId}
+                AND id != '${me.id}'
+                AND username = '${selectedNumber}';
+            `;
             var result = await osql.connect(sql);
             var count = result[0].count;
 
@@ -84,6 +106,35 @@
                 hasWon = true;
                 displayMessage('勝ち');
             }
+
+            // カウントダウン終了後に勝敗を判定する
+            setTimeout(evaluateResult, countdownSeconds * 1000);
+        }
+
+        function startCountdown() {
+            var countdownElement = document.getElementById('countdown');
+            countdownElement.innerHTML = countdownSeconds;
+
+            countdownInterval = setInterval(function() {
+                countdownSeconds--;
+                countdownElement.innerHTML = countdownSeconds;
+
+                if (countdownSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    evaluateResult();
+                }
+            }, 1000);
+        }
+
+        function evaluateResult() {
+            if (selectedNumber === null) {
+                // 数字を選ばなかった場合は負けとする
+                displayMessage('負け');
+            } else if (hasWon) {
+                displayMessage('勝ち');
+            } else {
+                displayMessage('負け');
+            }
         }
 
         function displayMessage(message) {
@@ -93,23 +144,25 @@
 </head>
 <body>
     <h1>ルーム<span id="roomname"></span></h1>
-<div class="player-info">
-    ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
-    <a href="index.html">top</a>
-</div>
-<hr>
-<div id="numUsers"></div>
-<br>
-<div>
-    <label for="numberInput">数字を選んでください（1から5）: </label>
-    <input type="number" id="numberInput" min="1" max="5">
-    <button id="selectNumberButton">選択</button>
-</div>
-<div id="message"></div>
-<div class="image-container">
-    <img src="character_takenoko.png" alt="写真" width="300" height="200">
-    <img src="character_takenoko.png" alt="写真" width="300" height="200">
-    <img src="character_takenoko.png" alt="写真" width="300" height="200">
-</div>
+    <div class="player-info">
+        ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
+        <a href="index.html">top</a>
+    </div>
+    <hr>
+    <p>ユーザー名: <span id="username"></span></p>
+    <div id="numUsers"></div>
+    <br>
+    <div>
+        <label for="numberInput">数字を選んでください（1から5）: </label>
+        <input type="number" id="numberInput" min="1" max="5">
+        <button id="selectNumberButton">選択</button>
+    </div>
+    <div id="message"></div>
+    <div>カウントダウン: <span id="countdown"></span> 秒</div>
+    <div class="image-container">
+        <img src="character_takenoko.png" alt="写真" width="300" height="200">
+        <img src="character_takenoko.png" alt="写真" width="300" height="200">
+        <img src="character_takenoko.png" alt="写真" width="300" height="200">
+    </div>
 </body>
 </html>
