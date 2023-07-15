@@ -16,6 +16,7 @@ var countdownInterval = null;
 var countdownSeconds = 15;
 var gameStarted = false; // ゲーム開始フラグ
 
+
 $(document).ready(async function () {
     me = await osql.getMe();
     document.getElementById('firstname').innerHTML = me.fname;
@@ -27,7 +28,7 @@ $(document).ready(async function () {
     var sql = `SELECT * FROM Rooms WHERE id = ${roomId}`;
     var objects = await osql.connect(sql);
     var room = objects[0];
-    document.getElementById('roomname').innerHTML = room.name;
+    document.getElementById('roomname').innerHTML = `ルーム${room.id}: ${room.name}`; // ルーム名を表示
 
     setInterval(refreshNumUsers, 1000); // 1秒ごとに参加人数を更新
     await refreshNumUsers();
@@ -88,7 +89,7 @@ function displayMessage(message) {
     </script>
 </head>
 <body>
-    <h1>ルーム<span id="roomname"></span></h1>
+    <h1><span id="roomname"></span></h1>
     <div class="player-info">
         ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
         <a href="index.html">top</a>
