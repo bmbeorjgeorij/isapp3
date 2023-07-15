@@ -16,7 +16,6 @@ var countdownInterval = null;
 var countdownSeconds = 15;
 var gameStarted = false; // ゲーム開始フラグ
 
-
 $(document).ready(async function () {
     me = await osql.getMe();
     document.getElementById('firstname').innerHTML = me.fname;
@@ -24,11 +23,8 @@ $(document).ready(async function () {
     var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
     document.getElementById('username').innerHTML = username;
 
-    roomId = getCurrentRoomId();
-    var sql = `SELECT * FROM Rooms WHERE id = ${roomId}`;
-    var objects = await osql.connect(sql);
-    var room = objects[0];
-    document.getElementById('roomname').innerHTML = `ルーム${room.id}: ${room.name}`; // ルーム名を表示
+    roomId = getRoomIdFromURL(); // URLパラメータからroomIdを取得
+    document.getElementById('roomname').innerHTML = `ルーム${roomId}`; // roomIdをタイトルとして表示
 
     setInterval(refreshNumUsers, 1000); // 1秒ごとに参加人数を更新
     await refreshNumUsers();
@@ -36,6 +32,13 @@ $(document).ready(async function () {
     // ゲーム開始の合図を待つ
     await waitForGameStart();
 });
+
+// URLパラメータからroomIdを取得する関数
+function getRoomIdFromURL() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var roomId = urlParams.get('roomId');
+    return roomId;
+}
 
 // ゲーム開始の合図を待つ関数
 async function waitForGameStart() {
@@ -89,7 +92,7 @@ function displayMessage(message) {
     </script>
 </head>
 <body>
-    <h1><span id="roomname"></span></h1>
+    <h1>ルーム<span id="roomname"></span></h1>
     <div class="player-info">
         ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
         <a href="index.html">top</a>
