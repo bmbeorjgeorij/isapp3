@@ -23,22 +23,15 @@ $(document).ready(async function () {
     var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
     document.getElementById('username').innerHTML = username;
 
-    roomId = getRoomIdFromURL(); // URLパラメータからroomIdを取得
-    document.getElementById('roomname').innerHTML = `ルーム${roomId}`; // roomIdをタイトルとして表示
-
     setInterval(refreshNumUsers, 1000); // 1秒ごとに参加人数を更新
     await refreshNumUsers();
 
     // ゲーム開始の合図を待つ
     await waitForGameStart();
-});
 
-// URLパラメータからroomIdを取得する関数
-function getRoomIdFromURL() {
-    var urlParams = new URLSearchParams(window.location.search);
-    var roomId = urlParams.get('roomId');
-    return roomId;
-}
+    var ROOM = osql.getParam('roomId')
+    document.getElementById('roomname').innerHTML =  ROOM
+});
 
 // ゲーム開始の合図を待つ関数
 async function waitForGameStart() {
@@ -92,7 +85,7 @@ function displayMessage(message) {
     </script>
 </head>
 <body>
-    <h1>ルーム<span id="roomname"></span></h1>
+    <h1 id="roomname"></h1>
     <div class="player-info">
         ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
         <a href="index.html">top</a>
