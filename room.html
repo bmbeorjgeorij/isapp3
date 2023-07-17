@@ -29,10 +29,9 @@ $(document).ready(async function () {
     document.getElementById('lastname').innerHTML = me.lname;
     var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
     document.getElementById('username').innerHTML = username;
-
+    roomId = getRoomIdFromURL();
     // ゲーム開始の合図を待つ
     waitForGameStart();
-    roomId = getRoomIdFromURL();
     document.getElementById('roomname').innerHTML = roomId;
 });
 
