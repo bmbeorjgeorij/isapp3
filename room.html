@@ -75,15 +75,15 @@ function startCountdown() {
 
 // 数字選択の表示
 async function selectNumberButton() {
-    var answers = parseInt(document.getElementById('numberInput').value);
-    console.log(answers);
-    var sql = `INSERT INTO answer (id, answer) VALUES ('${me.id}', ${answers})`;
+    var selectedNumber = parseInt(document.getElementById('numberInput').value);
+    console.log(selectedNumber);
+    var sql = `INSERT INTO answer (id, answer) VALUES ('${me.id}', ${selectedNumber})`;
     await osql.connect(sql);
 }
 
 // ゲーム結果を評価する関数
 async function evaluateResult() {
-    if (answers === null) {
+    if (selectedNumber === null || isNaN(selectedNumber)) {
         // 数字を選ばなかった場合は負けとする
         displayMessage('負け');
     } else if (hasWon) {
