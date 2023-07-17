@@ -38,7 +38,7 @@ $(document).ready(async function () {
 
 // ゲーム開始の合図を待つ関数
 async function waitForGameStart() {
-    var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId = ${roomId}`;
+    var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId = '${roomId}'`;
     var result = await osql.connect(sql);
     var numUsers = result[0].numUsers;
 
@@ -117,7 +117,7 @@ function displayMessage(message) {
 </script>
 </head>
 <body>
-    <h1>ルーム<span id="roomname"></span></h1>
+    <h1><span id="roomname"></span></h1>
     <div class="player-info">
         ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
         <a href="index.html">top</a>
