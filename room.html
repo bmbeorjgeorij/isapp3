@@ -46,6 +46,7 @@ async function waitForGameStart() {
         gameStarted = true;
         displayMessage('ゲーム開始です');
         startCountdown();
+        displayNumberSelection(); // 数字選択の表示
     } else {
         // 参加人数が足りない場合は一定時間後に再試行する
         setTimeout(waitForGameStart, 1000); // 1秒後に再試行
