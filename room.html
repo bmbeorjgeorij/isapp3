@@ -115,21 +115,22 @@ async function evaluateResult() {
     }
 
     // 全員の選択結果を取得して表示
-    var resultSql = `
+    var allResultSql = `
         SELECT u.fname, u.lname, a.answer
         FROM Users u
         INNER JOIN answer a ON u.id = a.id
         WHERE u.roomId = '${roomId}';
     `;
-    var result = await osql.connect(resultSql);
+    var allResult = await osql.connect(allResultSql);
 
     var resultText = '<h2>結果</h2><ul>';
-    for (var i = result.length - 1; i >= 0; i--) {
-        resultText += `<li>${result[i].fname} ${result[i].lname}：${result[i].answer}</li>`;
+    for (var i = allResult.length - 1; i >= 0; i--) {
+        resultText += `<li>${allResult[i].fname} ${allResult[i].lname}：${allResult[i].answer}</li>`;
     }
     resultText += '</ul>';
     document.getElementById('result').innerHTML = resultText;
 }
+    
 
 // メッセージを表示する関数
 function displayMessage(message) {
