@@ -74,9 +74,11 @@ function startCountdown() {
 }
 
 // 数字選択の表示
-function displayNumberSelection() {
-    var numberInput = document.getElementById('numberInput');
-    consol.log(numberInput);
+async function selectNumberButton() {
+    var answers = document.getElementById('numberInput');
+    console.log(answers)
+    var sql = `INSERT INTO answer (id, answer) VALUES ('${me.id}', 1)`;
+    await osql.connect(sql);
     var selectNumber = document.getElementById('selectNumberButton');
 }
 
@@ -132,7 +134,7 @@ function displayMessage(message) {
     <div>
         <label for="numberInput">数字を選んでください（1から5）: </label>
         <input type="number" id="numberInput" min="1" max="10">
-        <button id="selectNumberButton">選択</button>
+        <button onclick="selectNumberButton()">選択</button>
     </div>
     <div id="message"></div>
     <div>カウントダウン: <span id="countdown"></span> 秒</div>
