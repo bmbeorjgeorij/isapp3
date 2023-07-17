@@ -30,17 +30,12 @@ $(document).ready(async function () {
     var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
     document.getElementById('username').innerHTML = username;
 
-
-    setInterval(refreshNumUsers, 1000); // 1秒ごとに参加人数を更新
-    await refreshNumUsers();
-
     // ゲーム開始の合図を待つ
     waitForGameStart();
     roomId = getRoomIdFromURL();
-            document.getElementById('roomname').innerHTML = roomId;
-        });
+    document.getElementById('roomname').innerHTML = roomId;
+});
 
- 
 // ゲーム開始の合図を待つ関数
 async function waitForGameStart() {
     var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId = ${roomId}`;
@@ -58,8 +53,6 @@ async function waitForGameStart() {
     }
 }
 
-
-
 // カウントダウン開始
 function startCountdown() {
     var countdownElement = document.getElementById('countdown');
@@ -75,6 +68,7 @@ function startCountdown() {
         }
     }, 1000);
 }
+
 // 数字選択の表示
 function displayNumberSelection() {
     var numberInput = document.getElementById('numberInput');
@@ -83,7 +77,6 @@ function displayNumberSelection() {
     numberInput.style.display = 'block';
     selectNumberButton.style.display = 'block';
 }
-
 
 // ゲーム結果を評価する関数
 async function evaluateResult() {
@@ -121,7 +114,7 @@ async function evaluateResult() {
 function displayMessage(message) {
     document.getElementById('message').innerHTML = message;
 }
-    </script>
+</script>
 </head>
 <body>
     <h1>ルーム<span id="roomname"></span></h1>
