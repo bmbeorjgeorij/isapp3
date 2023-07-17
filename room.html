@@ -84,6 +84,7 @@ function displayNumberSelection() {
 
 // ゲーム結果を評価する関数
 async function evaluateResult() {
+    consol.log(selectedNumber)
     if (selectedNumber === null) {
         // 数字を選ばなかった場合は負けとする
         displayMessage('負け');
@@ -121,7 +122,7 @@ function displayMessage(message) {
 </script>
 </head>
 <body>
-    <h1><span id="roomname"></span></h1>
+    <h1>ルーム<span id="roomname"></span></h1>
     <div class="player-info">
         ようこそ<span id="lastname"></span> <span id="firstname"></span>さん
         <a href="index.html">top</a>

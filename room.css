@@ -51,16 +51,7 @@ input[type="number"] {
     text-align: center;
   }
   
-button {
-    background-color: #FF6F61;
-    color: #FFF;
-    border: none;
-    padding: 10px 20px;
-    font-size: 30px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
+
 
   button:hover {
     background-color: #FF957D;
@@ -88,4 +79,15 @@ button {
 
 .image-container img {
   margin: 0 10px;
+}
+
+#selectNumberButton{
+  background-color: #FF6F61;
+    color: #FFF;
+    border: none;
+    padding: 10px 20px;
+    font-size: 30px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
