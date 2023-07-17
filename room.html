@@ -73,36 +73,58 @@ function startCountdown() {
     }, 1000);
 }
 
+
 // 数字選択の表示
 async function selectNumberButton() {
     var selectedNumber = parseInt(document.getElementById('numberInput').value);
     console.log(selectedNumber);
     var sql = `INSERT INTO answer (id, answer) VALUES ('${me.id}', ${selectedNumber})`;
     await osql.connect(sql);
+    
+    // ボタンを無効化する
+    document.getElementById('selectButton').disabled = true;
 }
-
-// ゲーム結果を評価する関数
+//ゲーム結果を評価する関数
 async function evaluateResult() {
-    if (selectedNumber === null || isNaN(selectedNumber)) {
-        // 数字を選ばなかった場合は負けとする
-        displayMessage('負け');
-    } else if (hasWon) {
-        displayMessage('勝ち');
+    var selectedNumber = parseInt(document.getElementById('numberInput').value);
+    console.log(selectedNumber);
+
+    if (isNaN(selectedNumber)) {
+        // 数字が入力されていない場合は負けとする
+        displayMessage('値が入力されていないので負け');
     } else {
-        displayMessage('負け');
+        // 自分の選択結果と他の選択結果を比較
+        var resultSql = `
+            SELECT answer FROM answer WHERE roomId = '${roomId}' AND id <> '${me.id}';
+        `;
+        var result = await osql.connect(resultSql);
+
+        var match = false;
+        for (var i = 0; i < result.length; i++) {
+            if (result[i].answer === selectedNumber) {
+                match = true;
+                break;
+            }
+        }
+
+        if (match) {
+            displayMessage('他の参加者とかぶっているので負け');
+        } else {
+            displayMessage('他の参加者とかぶっていないので勝ち');
+        }
     }
+
     // 全員の選択結果を取得して表示
     var resultSql = `
         SELECT u.fname, u.lname, a.answer
-        FROM answer a
-        JOIN Users u ON a.id = u.id
-        WHERE u.roomId = ${roomId}
-        ORDER BY u.entry_timestamp ASC;
+        FROM Users u
+        INNER JOIN answer a ON u.id = a.id
+        WHERE u.roomId = '${roomId}';
     `;
     var result = await osql.connect(resultSql);
 
     var resultText = '<h2>結果</h2><ul>';
-    for (var i = 0; i < result.length; i++) {
+    for (var i = result.length - 1; i >= 0; i--) {
         resultText += `<li>${result[i].fname} ${result[i].lname}：${result[i].answer}</li>`;
     }
     resultText += '</ul>';
@@ -128,7 +150,7 @@ function displayMessage(message) {
     <div>
         <label for="numberInput">数字を選んでください（1から5）: </label>
         <input type="number" id="numberInput" min="1" max="10">
-        <button onclick="selectNumberButton()">選択</button>
+        <button id="selectButton" onclick="selectNumberButton()">選択</button>
     </div>
     <div id="message"></div>
     <div>カウントダウン: <span id="countdown"></span> 秒</div>
