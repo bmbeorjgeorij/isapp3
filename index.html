@@ -53,22 +53,21 @@
 
       function findAvailableRoomId(usedRoomIds) {
           var maxRoomId = 4; // 利用可能な最大のroomIdを指定
-          var counts = new Array(maxRoomId + 1).fill(0);
+          var counts = new Array(maxRoomId).fill(0);
   
           for (var i = 0; i < usedRoomIds.length; i++) {
               var roomId = usedRoomIds[i];
-              counts[roomId]++;
+              counts[roomId - 1]++;
           }
   
           for (var roomId = 1; roomId <= maxRoomId; roomId++) {
-              if (counts[roomId] === 0) {
+              if (counts[roomId - 1] < 2) {
                   return roomId;
               }
           }
   
           return null; // 利用可能なroomIdが見つからない場合はnullを返す
       }
-      
   
       function logout() {
           osql.logout();
