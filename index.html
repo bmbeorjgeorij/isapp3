@@ -26,49 +26,35 @@
           document.getElementById('lastname').innerHTML = me.lname;
           document.getElementById('username').innerHTML = username;
       });
-  
       async function getAssignedRoomId() {
-          var usedRoomIds = await getUsedRoomIds();
-          var roomId = findAvailableRoomId(usedRoomIds);
-          if (roomId === null) {
-              // 利用可能なRoomIDがない場合は既存の最大のRoomIDに1を加え、4で割った余りを割り当てる
-              var maxRoomId = Math.max(...usedRoomIds);
-              roomId = (maxRoomId + 1) % 4;
-              if (roomId === 0) {
-                  roomId = 4;
-              }
-          }
-          return roomId;
-      }
-  
-      // 修正後のコード
-      async function getUsedRoomIds() {
-          var sql = `
-            SELECT DISTINCT roomId FROM Users ORDER BY entry_timestamp ASC;
-          `;
-          var result = await osql.connect(sql);
-          var usedRoomIds = result.map(row => parseInt(row.roomId));
-          return usedRoomIds;
-      }
+    var usedRoomIds = await getUsedRoomIds();
+    var roomId = findAvailableRoomId(usedRoomIds);
+    if (roomId === null) {
+        // 利用可能なRoomIDがない場合は既存の最小の使用回数を持つRoomIDに割り当てる
+        roomId = findRoomIdWithMinCount(usedRoomIds);
+    }
+    return roomId;
+}
 
-      function findAvailableRoomId(usedRoomIds) {
-          var maxRoomId = 4; // 利用可能な最大のroomIdを指定
-          var counts = new Array(maxRoomId).fill(0);
-  
-          for (var i = 0; i < usedRoomIds.length; i++) {
-              var roomId = usedRoomIds[i];
-              counts[roomId - 1]++;
-          }
-  
-          for (var roomId = 1; roomId <= maxRoomId; roomId++) {
-              if (counts[roomId - 1] < 2) {
-                  return roomId;
-              }
-          }
-  
-          return null; // 利用可能なroomIdが見つからない場合はnullを返す
-      }
-  
+// 修正後のコード
+function findRoomIdWithMinCount(usedRoomIds) {
+    var counts = new Array(4).fill(0);
+
+    for (var i = 0; i < usedRoomIds.length; i++) {
+        var roomId = usedRoomIds[i];
+        counts[roomId - 1]++;
+    }
+
+    var minCount = Math.min(...counts);
+
+    for (var roomId = 1; roomId <= 4; roomId++) {
+        if (counts[roomId - 1] === minCount) {
+            return roomId;
+        }
+    }
+
+    return null; // 利用可能なroomIdが見つからない場合はnullを返す
+}
       function logout() {
           osql.logout();
       }
