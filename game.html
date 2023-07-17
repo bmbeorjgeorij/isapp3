@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="lib/jquery.min.js"></script>
+    <script type="text/javascript" src="lib/osql.js"></script>
+</head>
+<body>
+<h1>Game: <span id="roomname"></span></h1>
+<div style="text-align: right;">
+    >23 <span id="lastname"></span> ‹span id="firstname"></span> d h <button onclick="exitgame()"
+                                                                             onclick="location.href='index.htm|'"›&H < button> </div> <hr> <div id="tfbutton">
+    <input id="topic" type="text">
+    <button onclick=makeTopic()>お題を決め</button>
+    <button id="start" onclick="startgame()">開始</button>
+</div>
+<br>
+お題：
+<div id="comments"></div>
+<br>
+メンバー：
+<div id="members"></div>
+<input id="answer" type="text"><button onclick="inputanswer()">回答する</button>
+<div id="ans"></div>
+
+<script>
+osql.requireLogin();
+var me;
+var roomld = osql.getParam('roomld');
+$(document).ready(async function () {
+    me = await osql.getMe();
+    document.getElementById('firstname').innerHTML = me.fname;
+    document.getElementById('lastname').innerHTML = me.Iname;
+    var sql = `select * from Rooms where id = ${roomld}`;
+    var objects = await osql.connect(sql);
+    var room = objects[0];
+    document.getElementById('roomname').innerHTML = room.name;
+    insertParticipation();
+    await refreshRooms();
+    await refreshUsers();
+    await refreshAnswer();
+    setInterval(refreshRooms, 2000);
+    setInterval(refreshUsers, 2000);
+    setInterval(refreshAnswer, 2000);
+});
+
+
+
+async function refreshRooms() {
+    var sql = `select * from Rooms where id = ${roomld}`;
+    var objects = await osql.connect(sql);
+    var html = `${objects[0].topic}`;
+    document.getElementById('comments').innerHTML = html;
+}
+
+async function insertParticipation() {
+    var me = await osql.getMe();
+    var sql1 = `select * from Participations where roomld = ${roomld}`;
+    var object = await osql.connect(sql1);
+    var order = object.length + 1;
+    var sql2 = `insert into Participations (userld, orders, roomld) values ('${me.id}', ${order}, ${roomld})`;
+    var participationld = await osql.connectinsert(sql2);
+}
+
+async function refreshUsers() {
+    var sql = `select Users.fname, Users.Iname from Users inner join Participations on Users.id = Participations.userld where Participations.roomld = ${roomld}`;
+    var objects = await osql.connect(sql);
+    var html = "";
+    for (var i = 0; i < objects.length; i++) {
+        var object = objects[i];
+        html += object.fname;
+        html += object.Iname;
+        html += '<br>';
+    }
+    document.getElementById('members').innerHTML = html;
+}
+
+async function startgame() {
+    var sql = `select turn from Rooms where id = ${roomld}`;
+    var objects = await osql.connect(sql);
+    var turn = Number(objects[0].turn) + 1;
+    console.log(turn);
+    var sql1 = `update Rooms set turn = ${turn} where id = '${roomld}'`;
+    var commentld = await osql.connect(sql1);
+    var html = `
+        <input id="answer" type="text">
+        <button onclick="inputanswer()">回答する</button>
+    `;
+    document.getElementById('inp').innerHTML = html;
+}
+
+function makemyturngame() {
+    var html = "あなたの番です！";
+    document.getElementById('tfbutton').innerHTML = html;
+}
+
+function makenotmyturngame() {
+    var html = "あいての番です！";
+    document.getElementById('tfbutton').innerHTML = html;
+}
+
+async function inputanswer() {
+    me = await osql.getMe();
+    var sql = `select turn from Rooms where id = ${roomld}`;
+    var objects = await osql.connect(sql);
+    var turn = Number(objects[0].turn);
+    var sql1 = `select * from Participations where userld = '${me.id}'`;
+    var objects1 = await osql.connect(sql1);
+    var order = objects1[0].orders;
+    var sql2 = `select * from Participations where roomld = ${roomld}`;
+    var objects3 = await osql.connect(sql2);
+    var len = objects3.length;
+    if (len == order) {
+        if (turn % len == 0) {
+            var ans = document.getElementById('answer').value;
+            var sql = `select turn from Rooms where id = ${roomld}`;
+            var objects = await osql.connect(sql);
+            var turn = Number(objects[0].turn);
+            var sql1 = `select * from Participations where Roomld = ${roomld}`;
+            var objects1 = await osql.connect(sql1);
+            var partld = objects1[0].id;
+            var sql2 = `insert into Answers (participationld, content, turn) values ('${partld}', '${ans}', ${turn})`;
+            var commentld = await osql.connectinsert(sql2);
+            startgame();
+        } else {
+            if (turn % len == order) {
+                var ans = document.getElementById('answer').value;
+                var sql = `select turn from Rooms where id = ${roomld}`;
+                var objects = await osql.connect(sql);
+                var turn = Number(objects[0].turn);
+                var sql1 = `select * from Participations where Roomld = ${roomld}`;
+                var objects1 = await osql.connect(sql1);
+                var partld = objects1[0].id;
+                var sql2 = `insert into Answers (participationld, content, turn) values ('${partld}', '${ans}', ${turn})`;
+                var commentld = await osql.connectinsert(sql2);
+                startgame();
+            }
+        }
+    }
+}
+
+async function outputanswer() {
+    var html = "";
+    var sql = `select * from Participations inner join Answers on Participations.id = Answers.participationld where Participations.roomld = ${roomld}`;
+    var objects = await osql.connect(sql);
+    for (var i = 0; i < objects.length; i++) {
+        var object = objects[i];
+        var turn = object.turn;
+        var ans = object.content;
+        html += `${turn}ターン目：${ans}<br>`;
+    }
+    document.getElementById('ans').innerHTML = html;
+}
+
+async function exitgame() {
+    me = await osql.getMe();
+    var sql = `delete from Participations where userld = '${me.id}'`;
+    var commentld = await osql.connect(sql);
+    window.location.replace('index.html');
+}
+
+async function refreshAnswer() {
+    me = await osql.getMe();
+    var sql = `select turn from Rooms where id = ${roomld}`;
+    var objects = await osql.connect(sql);
+    var turn = Number(objects[0].turn);
+    var sql1 = `select * from Participations where userld = '${me.id}'`;
+    var objects1 = await osql.connect(sql1);
+    var order = objects1[0].orders;
+    var sql2 = `select * from Participations where roomld = ${roomld}`;
+    var objects3 = await osql.connect(sql2);
+    var len = objects3.length;
+    if (turn == 0) {
+    } else {
+        if (len == order) {
+            if (turn % len == 0) {
+                makemyturngame();
+                outputanswer();
+            } else {
+                makenotmyturngame();
+                outputanswer();
+            }
+        } else {
+            if (turn % len == order) {
+                makemyturngame();
+                outputanswer();
+            } else {
+                makenotmyturngame();
+                outputanswer();
+            }
+        }
+    }
+}
+</script>
+</body>
+</html>
