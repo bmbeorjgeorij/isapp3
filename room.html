@@ -86,7 +86,7 @@ function displayNumberSelection() {
 
 
 // ゲーム結果を評価する関数
-function evaluateResult() {
+async function evaluateResult() {
     if (selectedNumber === null) {
         // 数字を選ばなかった場合は負けとする
         displayMessage('負け');
@@ -95,6 +95,26 @@ function evaluateResult() {
     } else {
         displayMessage('負け');
     }
+    // 選択された数字をテーブルに追加
+    var sql = `INSERT INTO answer (id, answer) VALUES (${me.id}, ${selectedNumber})`;
+    await osql.connect(sql);
+
+    // 全員の選択結果を取得して表示
+    var resultSql = `
+        SELECT u.fname, u.lname, a.answer
+        FROM answer a
+        JOIN Users u ON a.id = u.id
+        WHERE u.roomId = ${roomId}
+        ORDER BY u.entry_timestamp ASC;
+    `;
+    var result = await osql.connect(resultSql);
+
+    var resultText = '<h2>結果</h2><ul>';
+    for (var i = 0; i < result.length; i++) {
+        resultText += `<li>${result[i].fname} ${result[i].lname}：${result[i].answer}</li>`;
+    }
+    resultText += '</ul>';
+    document.getElementById('result').innerHTML = resultText;
 }
 
 // メッセージを表示する関数
@@ -120,6 +140,7 @@ function displayMessage(message) {
     </div>
     <div id="message"></div>
     <div>カウントダウン: <span id="countdown"></span> 秒</div>
+    <div id="result"></div>
     <div class="image-container">
         <img src="character_takenoko.png" alt="写真" width="300" height="200">
         <img src="character_takenoko.png" alt="写真" width="300" height="200">
