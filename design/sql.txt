@@ -5,6 +5,6 @@ isdb3は以下のデータベーススキーマで設計している．
 create table Users(id varchar(128) primary key, fname varchar(128), lname varchar(128),roomId INT,username VARCHAR(128),entry_timestamp timestamp);
 create table Rooms (id serial, name varchar(128));
 create table game(turm bigint);
-create table answer(id int,answer int);
+create table answer(id text,answer int);
 
 

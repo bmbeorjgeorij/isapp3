@@ -46,7 +46,7 @@ async function waitForGameStart() {
     var numUsers = result[0].numUsers;
 
     // 参加人数が2人以上の場合、ゲームを開始する
-    if (numUsers >= 2) {
+    if (numUsers >=2) {
         gameStarted = true;
         displayMessage('ゲーム開始です');
         startCountdown();
