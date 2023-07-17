@@ -8,6 +8,13 @@
     <script>
         osql.requireLogin();
 
+function getRoomIdFromURL() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var roomId = urlParams.get('roomId');
+    return roomId;
+}
+console.log(roomId)
+
 var me;
 var roomId;
 var selectedNumber = null;
@@ -28,12 +35,12 @@ $(document).ready(async function () {
     await refreshNumUsers();
 
     // ゲーム開始の合図を待つ
-    await waitForGameStart();
+    waitForGameStart();
+    roomId = getRoomIdFromURL();
+            document.getElementById('roomname').innerHTML = roomId;
+        });
 
-    var roomId = osql.getParam('roomId')
-    document.getElementById('roomname').innerHTML = roomId;
-});
-
+ 
 // ゲーム開始の合図を待つ関数
 async function waitForGameStart() {
     var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId = ${roomId}`;
@@ -51,11 +58,7 @@ async function waitForGameStart() {
     }
 }
 
-function getRoomIdFromURL() {
-    var urlParams = new URLSearchParams(window.location.search);
-    var roomId = urlParams.get('roomId');
-    return roomId;
-}
+
 
 // カウントダウン開始
 function startCountdown() {
