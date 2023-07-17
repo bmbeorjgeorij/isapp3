@@ -84,24 +84,42 @@ async function selectNumberButton() {
     // ボタンを無効化する
     document.getElementById('selectButton').disabled = true;
 }
-
-// ゲーム結果を評価する関数
+//ゲーム結果を評価する関数
 async function evaluateResult() {
-    if (selectedNumber === null || isNaN(selectedNumber)) {
-        // 数字を選ばなかった場合は負けとする
-        displayMessage('負け');
-    } else if (hasWon) {
-        displayMessage('勝ち');
+    var selectedNumber = parseInt(document.getElementById('numberInput').value);
+    console.log(selectedNumber);
+
+    if (isNaN(selectedNumber)) {
+        // 数字が入力されていない場合は負けとする
+        displayMessage('値が入力されていないので負け');
     } else {
-        displayMessage('負け');
+        // 自分の選択結果と他の選択結果を比較
+        var resultSql = `
+            SELECT answer FROM answer WHERE roomId = '${roomId}' AND id <> '${me.id}';
+        `;
+        var result = await osql.connect(resultSql);
+
+        var match = false;
+        for (var i = 0; i < result.length; i++) {
+            if (result[i].answer === selectedNumber) {
+                match = true;
+                break;
+            }
+        }
+
+        if (match) {
+            displayMessage('他の参加者とかぶっているので負け');
+        } else {
+            displayMessage('他の参加者とかぶっていないので勝ち');
+        }
     }
+
     // 全員の選択結果を取得して表示
     var resultSql = `
         SELECT u.fname, u.lname, a.answer
         FROM Users u
         INNER JOIN answer a ON u.id = a.id
-        WHERE u.roomId = '${roomId}'
-        ;
+        WHERE u.roomId = '${roomId}';
     `;
     var result = await osql.connect(resultSql);
 
@@ -112,7 +130,6 @@ async function evaluateResult() {
     resultText += '</ul>';
     document.getElementById('result').innerHTML = resultText;
 }
-
 
 // メッセージを表示する関数
 function displayMessage(message) {
