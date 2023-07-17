@@ -76,15 +76,12 @@ function startCountdown() {
 // 数字選択の表示
 function displayNumberSelection() {
     var numberInput = document.getElementById('numberInput');
-    var selectNumberButton = document.getElementById('selectNumberButton');
-
-    numberInput.style.display = 'block';
-    selectNumberButton.style.display = 'block';
+    consol.log(numberInput);
+    var selectNumber = document.getElementById('selectNumberButton');
 }
 
 // ゲーム結果を評価する関数
 async function evaluateResult() {
-    consol.log(selectedNumber)
     if (selectedNumber === null) {
         // 数字を選ばなかった場合は負けとする
         displayMessage('負け');
@@ -96,6 +93,7 @@ async function evaluateResult() {
     // 選択された数字をテーブルに追加
     var sql = `INSERT INTO answer (id, answer) VALUES (${me.id}, ${selectedNumber})`;
     await osql.connect(sql);
+    consol.log(selectedNumber)
 
     // 全員の選択結果を取得して表示
     var resultSql = `
