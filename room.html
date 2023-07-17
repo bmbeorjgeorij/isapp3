@@ -40,9 +40,6 @@ async function waitForGameStart() {
     var result = await osql.connect(sql);
     var numUsers = result[0].numUsers;
 
-    async function waitForGameStart() {
-    roomId = getRoomIdFromURL(); // URLパラメータからroomIdを取得
-}
     // 参加人数が2人以上の場合、ゲームを開始する
     if (numUsers >= 2) {
         gameStarted = true;
