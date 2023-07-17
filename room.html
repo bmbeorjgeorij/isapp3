@@ -8,12 +8,7 @@
     <script>
         osql.requireLogin();
 
-function getRoomIdFromURL() {
-    var urlParams = new URLSearchParams(window.location.search);
-    var roomId = urlParams.get('roomId');
-    return roomId;
-}
-console.log(roomId)
+
 
 var me;
 var roomId;
@@ -31,9 +26,18 @@ $(document).ready(async function () {
     document.getElementById('username').innerHTML = username;
     roomId = getRoomIdFromURL();
     // ゲーム開始の合図を待つ
+    console.log(roomId)
     waitForGameStart();
     document.getElementById('roomname').innerHTML = roomId;
+    
+
 });
+function getRoomIdFromURL() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var roomId = urlParams.get('roomId');
+    return roomId;
+}
+
 
 // ゲーム開始の合図を待つ関数
 async function waitForGameStart() {
