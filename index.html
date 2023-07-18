@@ -30,13 +30,9 @@
       async function getAssignedRoomId() {
     var usedRoomIds = await getUsedRoomIds();
     var rowCount = usedRoomIds.length + 1;
-    var roomId = rowCount % 4;
-    if (roomId === 0) {
-        roomId = 4;
-    }
+    var roomId = (rowCount - 1) % 4 + 1;
     return roomId;
 }
-
       // 修正後のコード
       async function getUsedRoomIds() {
           var sql = `
