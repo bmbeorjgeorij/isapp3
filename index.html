@@ -26,13 +26,17 @@
           document.getElementById('lastname').innerHTML = me.lname;
           document.getElementById('username').innerHTML = username;
       });
-  
       var roomCounter = 1;
 
 async function getAssignedRoomId() {
   var usedRoomIds = await getUsedRoomIds();
   var roomId = roomCounter;
   roomCounter = (roomCounter % 4) + 1;
+
+  if (usedRoomIds.includes(roomId)) {
+    roomId = findAvailableRoomId(usedRoomIds);
+  }
+
   return roomId;
 }
 
@@ -46,6 +50,8 @@ window.addEventListener('load', function() {
     roomCounter = parseInt(storedRoomCounter);
   }
 });
+    
+
       // 修正後のコード
       async function getUsedRoomIds() {
           var sql = `
