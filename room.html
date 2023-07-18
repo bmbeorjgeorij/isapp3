@@ -15,7 +15,7 @@
         var countdownInterval = null;
         var countdownSeconds = 15;
         var gameStarted = false;
-        var currentTurn = null;
+        var currentTurn = 1;
 
         $(document).ready(async function () {
             me = await osql.getMe();
@@ -42,8 +42,12 @@
 
             if (numUsers >= 2) {
                 gameStarted = true;
+
                 displayMessage('ゲーム開始です');
-                getCurrentTurn();  // ゲームの現在のターン数を取得して表示
+                var sql = `SELECT turn FROM game WHERE roomId = '${roomId}'`;
+                var result = await osql.connect(sql);
+                currentTurn = result[0].turn;
+                document.getElementById('turnNumber').innerHTML = currentTurn;
                 startCountdown();
                 displayNumberSelection();
             } else {
@@ -60,6 +64,9 @@
         }
 
         function startCountdown() {
+            currentTurn = 1;
+            document.getElementById('turnNumber').innerHTML = currentTurn;
+            
             var countdownElement = document.getElementById('countdown');
             countdownElement.innerHTML = countdownSeconds;
 
