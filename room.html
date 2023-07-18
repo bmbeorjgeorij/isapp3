@@ -8,94 +8,83 @@
     <script>
         osql.requireLogin();
 
+        var me;
+        var roomId;
+        var selectedNumber = null;
+        var hasWon = false;
+        var countdownInterval = null;
+        var countdownSeconds = 15;
+        var gameStarted = false;
 
+        $(document).ready(async function () {
+            me = await osql.getMe();
+            document.getElementById('firstname').innerHTML = me.fname;
+            document.getElementById('lastname').innerHTML = me.lname;
+            var username = me.fname.charAt(0);
+            document.getElementById('username').innerHTML = username;
+            roomId = getRoomIdFromURL();
+            console.log(roomId);
+            waitForGameStart();
+            document.getElementById('roomname').innerHTML = roomId;
+        });
 
-var me;
-var roomId;
-var selectedNumber = null;
-var hasWon = false;
-var countdownInterval = null;
-var countdownSeconds = 15;
-var gameStarted = false; // ゲーム開始フラグ
-
-$(document).ready(async function () {
-    me = await osql.getMe();
-    document.getElementById('firstname').innerHTML = me.fname;
-    document.getElementById('lastname').innerHTML = me.lname;
-    var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
-    document.getElementById('username').innerHTML = username;
-    roomId = getRoomIdFromURL();
-    // ゲーム開始の合図を待つ
-    console.log(roomId)
-    waitForGameStart();
-    document.getElementById('roomname').innerHTML = roomId;
-    
-
-});
-function getRoomIdFromURL() {
-    var urlParams = new URLSearchParams(window.location.search);
-    var roomId = urlParams.get('roomId');
-    return roomId;
-}
-
-
-// ゲーム開始の合図を待つ関数
-async function waitForGameStart() {
-    var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId = '${roomId}'`;
-    var result = await osql.connect(sql);
-    var numUsers = result[0].numUsers;
-
-    // 参加人数が2人以上の場合、ゲームを開始する
-    if (numUsers >=2) {
-        gameStarted = true;
-        displayMessage('ゲーム開始です');
-        startCountdown();
-        displayNumberSelection(); // 数字選択の表示
-    } else {
-        // 参加人数が足りない場合は一定時間後に再試行する
-        setTimeout(waitForGameStart, 1000); // 1秒後に再試行
-    }
-}
-
-// カウントダウン開始
-function startCountdown() {
-    var countdownElement = document.getElementById('countdown');
-    countdownElement.innerHTML = countdownSeconds;
-
-    countdownInterval = setInterval(function () {
-        countdownSeconds--;
-        countdownElement.innerHTML = countdownSeconds;
-
-        if (countdownSeconds <= 0) {
-            clearInterval(countdownInterval);
-            evaluateResult();
+        function getRoomIdFromURL() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var roomId = urlParams.get('roomId');
+            return roomId;
         }
-    }, 1000);
-}
 
+        async function waitForGameStart() {
+            var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId = '${roomId}'`;
+            var result = await osql.connect(sql);
+            var numUsers = result[0].numUsers;
 
-// 数字選択の表示
-async function selectNumberButton() {
-    var selectedNumber = parseInt(document.getElementById('numberInput').value);
-    console.log(selectedNumber);
-    var sql = `INSERT INTO answer (id, answer) VALUES ('${me.id}', ${selectedNumber})`;
-    await osql.connect(sql);
-    
-    // ボタンを無効化する
-    document.getElementById('selectButton').disabled = true;
-}
-//ゲーム結果を評価する関数
-async function evaluateResult() {
+            if (numUsers >= 2) {
+                gameStarted = true;
+                displayMessage('ゲーム開始です');
+                startCountdown();
+                displayNumberSelection();
+            } else {
+                setTimeout(waitForGameStart, 1000);
+            }
+        }
+
+        function startCountdown() {
+            var countdownElement = document.getElementById('countdown');
+            countdownElement.innerHTML = countdownSeconds;
+
+            countdownInterval = setInterval(function () {
+                countdownSeconds--;
+                countdownElement.innerHTML = countdownSeconds;
+
+                if (countdownSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    evaluateResult();
+                }
+            }, 1000);
+        }
+
+        async function selectNumberButton() {
+            var selectedNumber = parseInt(document.getElementById('numberInput').value);
+            console.log(selectedNumber);
+            var sql = `INSERT INTO answer (id, answer) VALUES ('${me.id}', ${selectedNumber})`;
+            await osql.connect(sql);
+
+            document.getElementById('selectButton').disabled = true;
+        }
+
+        async function evaluateResult() {
     var selectedNumber = parseInt(document.getElementById('numberInput').value);
     console.log(selectedNumber);
 
     if (isNaN(selectedNumber)) {
-        // 数字が入力されていない場合は負けとする
         displayMessage('値が入力されていないので負け');
     } else {
-        // 自分の選択結果と他の選択結果を比較
         var resultSql = `
-            SELECT answer FROM answer WHERE roomId = '${roomId}' AND id <> '${me.id}';
+            SELECT a.answer
+            FROM Users u
+            INNER JOIN answer a ON u.id = a.id
+            WHERE u.roomId = '${roomId}' AND u.id <> '${me.id}'
         `;
         var result = await osql.connect(resultSql);
 
@@ -114,12 +103,11 @@ async function evaluateResult() {
         }
     }
 
-    // 全員の選択結果を取得して表示
     var allResultSql = `
         SELECT u.fname, u.lname, a.answer
         FROM Users u
         INNER JOIN answer a ON u.id = a.id
-        WHERE u.roomId = '${roomId}';
+        WHERE u.roomId = '${roomId}'
     `;
     var allResult = await osql.connect(allResultSql);
 
@@ -130,13 +118,18 @@ async function evaluateResult() {
     resultText += '</ul>';
     document.getElementById('result').innerHTML = resultText;
 }
-    
 
-// メッセージを表示する関数
-function displayMessage(message) {
-    document.getElementById('message').innerHTML = message;
-}
-</script>
+        function displayMessage(message) {
+            document.getElementById('message').innerHTML = message;
+        }
+        
+        // 数字の選択欄を1から10までに設定する関数
+        function displayNumberSelection() {
+            var numberInput = document.getElementById('numberInput');
+            numberInput.setAttribute('min', '1');
+            numberInput.setAttribute('max', '10');
+        }
+    </script>
 </head>
 <body>
     <h1>ルーム<span id="roomname"></span></h1>
@@ -149,8 +142,8 @@ function displayMessage(message) {
     <div id="numUsers"></div>
     <br>
     <div>
-        <label for="numberInput">数字を選んでください（1から5）: </label>
-        <input type="number" id="numberInput" min="1" max="10">
+        <label for="numberInput">数字を選んでください（1から10）: </label>
+        <input type="number" id="numberInput">
         <button id="selectButton" onclick="selectNumberButton()">選択</button>
     </div>
     <div id="message"></div>
