@@ -19,7 +19,7 @@
               INSERT INTO Users (id, fname, lname, roomId, username, entry_timestamp)
               VALUES ('${me.id}', '${me.fname}', '${me.lname}', ${roomId}, '${username}', CURRENT_TIMESTAMP)
               ON DUPLICATE KEY UPDATE
-              roomId = VALUES(roomId), entry_timestamp = VALUES(entry_timestamp);
+              roomId = IF(roomId = 0, ${roomId}, roomId), entry_timestamp = VALUES(entry_timestamp);
           `;
           await osql.connect(sql);
           document.getElementById('firstname').innerHTML = me.fname;
