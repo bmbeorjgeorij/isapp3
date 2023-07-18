@@ -52,22 +52,22 @@ async function getUsedRoomIds() {
 }
   
 function findAvailableRoomId(usedRoomIds) {
-          var maxRoomId = 4; // 利用可能な最大のroomIdを指定
-          var counts = new Array(maxRoomId + 1).fill(0);
-  
-          for (var i = 0; i < usedRoomIds.length; i++) {
-              var roomId = usedRoomIds[i];
-              counts[roomId]++;
-          }
-  
-          for (var roomId = 1; roomId <= maxRoomId; roomId++) {
-              if (counts[roomId] === 0) {
-                  return roomId;
-              }
-          }
-  
-          return null; // 利用可能なroomIdが見つからない場合はnullを返す
-      }
+    var maxRoomId = 4; // 利用可能な最大のroomIdを指定
+    var availableRoomIds = [];
+
+    for (var roomId = 1; roomId <= maxRoomId; roomId++) {
+        if (!usedRoomIds.includes(roomId)) {
+            availableRoomIds.push(roomId);
+        }
+    }
+
+    if (availableRoomIds.length === 0) {
+        return null; // 利用可能なroomIdがない場合はnullを返す
+    }
+
+    var randomIndex = Math.floor(Math.random() * availableRoomIds.length);
+    return availableRoomIds[randomIndex];
+}
   
       function logout() {
           osql.logout();
