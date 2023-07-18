@@ -15,7 +15,7 @@
         var countdownInterval = null;
         var countdownSeconds = 15;
         var gameStarted = false;
-        var currentTurn = 1; // ターン数の初期値を1に設定
+        var currentTurn = null;
 
         $(document).ready(async function () {
             me = await osql.getMe();
@@ -52,7 +52,11 @@
         }
 
         function getCurrentTurn() {
-            document.getElementById('turnNumber').innerHTML = currentTurn; // ターン数を表示
+            var turnSql = `SELECT turn FROM game WHERE roomId = '${roomId}'`;
+            osql.connect(turnSql, function (turnResult) {
+                currentTurn = turnResult[0].turn;
+                document.getElementById('turnNumber').innerHTML = currentTurn;
+            });
         }
 
         function startCountdown() {
@@ -131,23 +135,17 @@
             numberInput.setAttribute('max', '10');
         }
 
-        function restartGame() {
-            // ゲーム再開時に必要な処理をここに記述
+        async function restartGame() {
+            var sql = `UPDATE game SET turn = 1 WHERE roomId = '${roomId}'`;
+            await osql.connect(sql);
 
-            // ボタンの状態を制御
-            document.getElementById('restartButton').disabled = true;
-
-            // ゲームの初期化処理
-            // ターン数のリセットなどの処理を実行
-            currentTurn = 1; // ターン数を1にリセット
-
-            // ゲームを再開する
-            gameStarted = true;
-            displayMessage('ゲーム開始です');
-            getCurrentTurn();  // ゲームの現在のターン数を取得して表示
             countdownSeconds = 15;  // カウントダウン秒数をリセット
             startCountdown();
-            displayNumberSelection();
+            document.getElementById('selectButton').disabled = false;
+            document.getElementById('result').innerHTML = '';
+
+            // ゲーム再開ボタンを無効化
+            document.getElementById('restartButton').disabled = true;
         }
     </script>
 </head>
