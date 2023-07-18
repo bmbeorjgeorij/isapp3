@@ -143,8 +143,8 @@
         }
 
         async function restartGame() {
-            var sql = `UPDATE game SET turn = 1 WHERE roomId = '${roomId}'`;
-            await osql.connect(sql);
+            var updateTurnSql = `UPDATE game SET turn = turn + 1 WHERE roomId = '${roomId}'`;
+            await osql.connect(updateTurnSql);
 
             countdownSeconds = 15;  // カウントダウン秒数をリセット
             startCountdown();
@@ -153,6 +153,10 @@
 
             // ゲーム再開ボタンを無効化
             document.getElementById('restartButton').disabled = true;
+
+            // ターン数を更新
+            currentTurn++;
+            document.getElementById('turnNumber').innerHTML = currentTurn;
         }
     </script>
 </head>
@@ -185,3 +189,9 @@
     </div>
 </body>
 </html>
+
+    
+    
+    
+    
+    
