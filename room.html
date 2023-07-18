@@ -15,6 +15,7 @@
         var countdownInterval = null;
         var countdownSeconds = 15;
         var gameStarted = false;
+        var currentTurn = 1; // ターン数の初期値を1に設定
 
         $(document).ready(async function () {
             me = await osql.getMe();
@@ -42,11 +43,16 @@
             if (numUsers >= 2) {
                 gameStarted = true;
                 displayMessage('ゲーム開始です');
+                getCurrentTurn();  // ゲームの現在のターン数を取得して表示
                 startCountdown();
                 displayNumberSelection();
             } else {
                 setTimeout(waitForGameStart, 1000);
             }
+        }
+
+        function getCurrentTurn() {
+            document.getElementById('turnNumber').innerHTML = currentTurn; // ターン数を表示
         }
 
         function startCountdown() {
@@ -74,52 +80,74 @@
         }
 
         async function evaluateResult() {
-    var selectedNumber = parseInt(document.getElementById('numberInput').value);
-    console.log(selectedNumber);
+            var selectedNumber = parseInt(document.getElementById('numberInput').value);
+            console.log(selectedNumber);
 
-    if (isNaN(selectedNumber)) {
-        displayMessage('値が入力されていないので負け');
-    } else {
-        var resultSql = `
-            SELECT COUNT(*) AS count
-            FROM Users u
-            INNER JOIN answer a ON u.id = a.id
-            WHERE u.roomId = '${roomId}' AND a.answer = ${selectedNumber} AND u.id <> '${me.id}'
-        `;
-        var result = await osql.connect(resultSql);
-        var matchCount = result[0].count;
+            if (isNaN(selectedNumber)) {
+                displayMessage('値が入力されていないので負け');
+            } else {
+                var resultSql = `
+                    SELECT COUNT(*) AS count
+                    FROM Users u
+                    INNER JOIN answer a ON u.id = a.id
+                    WHERE u.roomId = '${roomId}' AND a.answer = ${selectedNumber} AND u.id <> '${me.id}'
+                `;
+                var result = await osql.connect(resultSql);
+                var matchCount = result[0].count;
 
-        if (matchCount > 0) {
-            displayMessage('他の参加者とかぶっているので負け');
-        } else {
-            displayMessage('他の参加者とかぶっていないので勝ち');
+                if (matchCount > 0) {
+                    displayMessage('他の参加者とかぶっているので負け');
+                } else {
+                    displayMessage('他の参加者とかぶっていないので勝ち');
+                }
+            }
+
+            var allResultSql = `
+                SELECT u.fname, u.lname, a.answer
+                FROM Users u
+                INNER JOIN answer a ON u.id = a.id
+                WHERE u.roomId = '${roomId}'
+            `;
+            var allResult = await osql.connect(allResultSql);
+
+            var resultText = '<h2>結果</h2><ul>';
+            for (var i = 0; i < allResult.length; i++) {
+                resultText += `<li>${allResult[i].fname} ${allResult[i].lname}：${allResult[i].answer}</li>`;
+            }
+            resultText += '</ul>';
+            document.getElementById('result').innerHTML = resultText;
+
+            // ゲーム再開ボタンを有効化
+            document.getElementById('restartButton').disabled = false;
         }
-    }
-
-    var allResultSql = `
-        SELECT u.fname, u.lname, a.answer
-        FROM Users u
-        INNER JOIN answer a ON u.id = a.id
-        WHERE u.roomId = '${roomId}'
-    `;
-    var allResult = await osql.connect(allResultSql);
-
-    var resultText = '<h2>結果</h2><ul>';
-    for (var i = 0; i < allResult.length; i++) {
-        resultText += `<li>${allResult[i].fname} ${allResult[i].lname}：${allResult[i].answer}</li>`;
-    }
-    resultText += '</ul>';
-    document.getElementById('result').innerHTML = resultText;
-}
 
         function displayMessage(message) {
             document.getElementById('message').innerHTML = message;
         }
-        
+
         function displayNumberSelection() {
             var numberInput = document.getElementById('numberInput');
             numberInput.setAttribute('min', '1');
             numberInput.setAttribute('max', '10');
+        }
+
+        function restartGame() {
+            // ゲーム再開時に必要な処理をここに記述
+
+            // ボタンの状態を制御
+            document.getElementById('restartButton').disabled = true;
+
+            // ゲームの初期化処理
+            // ターン数のリセットなどの処理を実行
+            currentTurn = 1; // ターン数を1にリセット
+
+            // ゲームを再開する
+            gameStarted = true;
+            displayMessage('ゲーム開始です');
+            getCurrentTurn();  // ゲームの現在のターン数を取得して表示
+            countdownSeconds = 15;  // カウントダウン秒数をリセット
+            startCountdown();
+            displayNumberSelection();
         }
     </script>
 </head>
@@ -131,6 +159,7 @@
     </div>
     <hr>
     <p>ユーザー名: <span id="username"></span></p>
+    <p>現在のターン: <span id="turnNumber"></span></p>
     <div id="numUsers"></div>
     <br>
     <div>
@@ -141,6 +170,9 @@
     <div id="message"></div>
     <div>カウントダウン: <span id="countdown"></span> 秒</div>
     <div id="result"></div>
+    <div id="gameControls">
+        <button id="restartButton" onclick="restartGame()" disabled>もう一度プレイする</button>
+    </div>
     <div class="image-container">
         <img src="character_takenoko.png" alt="写真" width="300" height="200">
         <img src="character_takenoko.png" alt="写真" width="300" height="200">
