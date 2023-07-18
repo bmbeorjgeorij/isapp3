@@ -26,6 +26,7 @@
           document.getElementById('lastname').innerHTML = me.lname;
           document.getElementById('username').innerHTML = username;
       });
+      
       var roomCounter = 1;
 
 async function getAssignedRoomId() {
@@ -35,6 +36,15 @@ async function getAssignedRoomId() {
 
   if (usedRoomIds.includes(roomId)) {
     roomId = findAvailableRoomId(usedRoomIds);
+  }
+
+  if (roomId === null) {
+    // 利用可能なルームIDがない場合は既存の最大のルームIDに1を加え、4で割った余りを割り当てる
+    var maxRoomId = Math.max(...usedRoomIds);
+    roomId = (maxRoomId + 1) % 4;
+    if (roomId === 0) {
+      roomId = 4;
+    }
   }
 
   return roomId;
@@ -50,7 +60,6 @@ window.addEventListener('load', function() {
     roomCounter = parseInt(storedRoomCounter);
   }
 });
-    
 
       // 修正後のコード
       async function getUsedRoomIds() {
