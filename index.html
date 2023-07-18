@@ -28,10 +28,10 @@
       });
   
       async function getAssignedRoomId() {
-    var usedRoomIds = await getUsedRoomIds();
-    var rowCount = usedRoomIds.length + 1;
-    var roomId = (rowCount - 1) % 4 + 1;
-    return roomId;
+  var usedRoomIds = await getUsedRoomIds();
+  var rowCount = usedRoomIds.length + 1;
+  var roomId = ((rowCount - 1) % 4) + 1;
+  return roomId;
 }
       // 修正後のコード
       async function getUsedRoomIds() {
