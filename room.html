@@ -46,7 +46,13 @@
                 displayMessage('ゲーム開始です');
                 var sql = `SELECT turn FROM game WHERE roomId = '${roomId}'`;
                 var result = await osql.connect(sql);
-                currentTurn = result[0].turn;
+                if (result.length > 0) {
+                    currentTurn = result[0].turn;
+                } else {
+                    // game テーブルに該当する roomId のレコードが存在しない場合は新たに追加
+                    var insertGameSql = `INSERT INTO game (roomId, turn) VALUES ('${roomId}', 1)`;
+                    await osql.connect(insertGameSql);
+                }
                 document.getElementById('turnNumber').innerHTML = currentTurn;
                 startCountdown();
                 displayNumberSelection();
@@ -64,9 +70,6 @@
         }
 
         function startCountdown() {
-            currentTurn = 1;
-            document.getElementById('turnNumber').innerHTML = currentTurn;
-            
             var countdownElement = document.getElementById('countdown');
             countdownElement.innerHTML = countdownSeconds;
 
@@ -143,6 +146,9 @@
         }
 
         async function restartGame() {
+            var deleteAnswersSql = `DELETE FROM answer WHERE id = '${me.id}'`;
+            await osql.connect(deleteAnswersSql);
+
             var updateTurnSql = `UPDATE game SET turn = turn + 1 WHERE roomId = '${roomId}'`;
             await osql.connect(updateTurnSql);
 
@@ -189,6 +195,7 @@
     </div>
 </body>
 </html>
+
 
     
     
