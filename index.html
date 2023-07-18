@@ -27,12 +27,25 @@
           document.getElementById('username').innerHTML = username;
       });
   
-      async function getAssignedRoomId() {
+      var roomCounter = 1;
+
+async function getAssignedRoomId() {
   var usedRoomIds = await getUsedRoomIds();
-  var rowCount = usedRoomIds.length + 1;
-  var roomId = ((rowCount - 1) % 4) + 1;
+  var roomId = roomCounter;
+  roomCounter = (roomCounter % 4) + 1;
   return roomId;
 }
+
+window.addEventListener('beforeunload', function() {
+  localStorage.setItem('roomCounter', roomCounter);
+});
+
+window.addEventListener('load', function() {
+  var storedRoomCounter = localStorage.getItem('roomCounter');
+  if (storedRoomCounter !== null) {
+    roomCounter = parseInt(storedRoomCounter);
+  }
+});
       // 修正後のコード
       async function getUsedRoomIds() {
           var sql = `
