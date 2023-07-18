@@ -9,78 +9,46 @@
 
     <script>
       osql.requireLogin();
-  
-      $(document).ready(async function() {
-          var me = await osql.getMe();
-          console.log(me);
-          var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
-          var roomId = await getAssignedRoomId();
-          var sql = `
-              INSERT INTO Users (id, fname, lname, roomId, username, entry_timestamp)
-              VALUES ('${me.id}', '${me.fname}', '${me.lname}', ${roomId}, '${username}', CURRENT_TIMESTAMP)
-              ON DUPLICATE KEY UPDATE
-              roomId = IF(roomId = 0, ${roomId}, roomId), entry_timestamp = VALUES(entry_timestamp);
-          `;
-          await osql.connect(sql);
-          document.getElementById('firstname').innerHTML = me.fname;
-          document.getElementById('lastname').innerHTML = me.lname;
-          document.getElementById('username').innerHTML = username;
-      });
-  
-      async function getAssignedRoomId() {
-          var usedRoomIds = await getUsedRoomIds();
-          var roomId = findAvailableRoomId(usedRoomIds);
-          if (roomId === null) {
-              // 利用可能なRoomIDがない場合は既存の最大のRoomIDに1を加え、4で割った余りを割り当てる
-              var maxRoomId = Math.max(...usedRoomIds);
-              roomId = (maxRoomId + 1) % 4;
-              if (roomId === 0) {
-                  roomId = 4;
-              }
-          }
-          return roomId;
-      }
 
-      // 修正後のコード
-      async function getUsedRoomIds() {
-          var sql = `
-            SELECT DISTINCT roomId FROM Users ORDER BY entry_timestamp ASC;
-          `;
-          var result = await osql.connect(sql);
-          var usedRoomIds = result.map(row => parseInt(row.roomId));
-          return usedRoomIds;
-      }
-  
-      function findAvailableRoomId(usedRoomIds) {
-          var maxRoomId = 4; // 利用可能な最大のroomIdを指定
-          var availableRoomIds = [];
+var roomCounter = 1;
 
-          for (var roomId = 1; roomId <= maxRoomId; roomId++) {
-              if (!usedRoomIds.includes(roomId)) {
-                  availableRoomIds.push(roomId);
-              }
-          }
+$(document).ready(async function() {
+  var me = await osql.getMe();
+  console.log(me);
+  var username = me.fname.charAt(0); // ネームの最初の1文字をユーザーネームとして表示
+  var roomId = await getAssignedRoomId();
+  var sql = `
+    INSERT INTO Users (id, fname, lname, roomId, username, entry_timestamp)
+    VALUES ('${me.id}', '${me.fname}', '${me.lname}', ${roomId}, '${username}', CURRENT_TIMESTAMP);
+  `;
+  await osql.connect(sql);
+  document.getElementById('firstname').innerHTML = me.fname;
+  document.getElementById('lastname').innerHTML = me.lname;
+  document.getElementById('username').innerHTML = username;
+});
 
-          if (availableRoomIds.length === 0) {
-              return null; // 利用可能なroomIdがない場合はnullを返す
-          }
+async function getAssignedRoomId() {
+  var sql = `
+    SELECT COUNT(*) AS count FROM Users;
+  `;
+  var result = await osql.connect(sql);
+  var count = parseInt(result[0].count);
+  var roomId = (count % 4) + 1;
+  return roomId;
+}
 
-          var index = usedRoomIds.length % availableRoomIds.length;
-          return availableRoomIds[index];
-      }
-  
-      function logout() {
-          osql.logout();
-      }
-  
-      function button1() {
-          var fname = document.getElementById('firstname').innerHTML;
-          var lname = document.getElementById('lastname').innerHTML;
-          sessionStorage.setItem('fname', fname);
-          sessionStorage.setItem('lname', lname);
-          var linkurl = "robby.html";
-          window.location.href = linkurl;
-      }
+function logout() {
+  osql.logout();
+}
+
+function button1() {
+  var fname = document.getElementById('firstname').innerHTML;
+  var lname = document.getElementById('lastname').innerHTML;
+  sessionStorage.setItem('fname', fname);
+  sessionStorage.setItem('lname', lname);
+  var linkurl = "robby.html";
+  window.location.href = linkurl;
+}
   </script>
 
 </head>
