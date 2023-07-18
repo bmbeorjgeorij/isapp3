@@ -28,18 +28,14 @@
       });
   
       async function getAssignedRoomId() {
-          var usedRoomIds = await getUsedRoomIds();
-          var roomId = findAvailableRoomId(usedRoomIds);
-          if (roomId === null) {
-              // 利用可能なRoomIDがない場合は既存の最大のRoomIDに1を加え、4で割った余りを割り当てる
-              var maxRoomId = Math.max(...usedRoomIds);
-              roomId = (maxRoomId + 1) % 4;
-              if (roomId === 0) {
-                  roomId = 4;
-              }
-          }
-          return roomId;
-      }
+    var usedRoomIds = await getUsedRoomIds();
+    var rowCount = usedRoomIds.length + 1;
+    var roomId = rowCount % 4;
+    if (roomId === 0) {
+        roomId = 4;
+    }
+    return roomId;
+}
 
       // 修正後のコード
       async function getUsedRoomIds() {
