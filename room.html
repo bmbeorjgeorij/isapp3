@@ -131,18 +131,18 @@
             } 
         }
     }
-            var allResultSql = `
-                SELECT u.fname, u.lname, a.answer
-                FROM Users u
-                INNER JOIN answer a ON u.id = a.id
-                WHERE u.roomId = '${roomId}'
-            `;
+    var allResultSql = `
+        SELECT u.username, a.answer
+        FROM Users u
+        INNER JOIN answer a ON u.id = a.id
+        WHERE u.roomId = '${roomId}'
+    `;
             var allResult = await osql.connect(allResultSql);
 
             var resultText = '<h2>結果</h2><ul>';
             for (var i = 0; i < allResult.length; i++) {
-                resultText += `<li>${allResult[i].fname} ${allResult[i].lname}：${allResult[i].answer}</li>`;
-            }
+                resultText += `<li>${allResult[i].username}：${allResult[i].answer}</li>`;
+    }
             resultText += '</ul>';
             document.getElementById('result').innerHTML = resultText;
 
