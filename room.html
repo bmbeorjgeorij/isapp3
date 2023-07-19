@@ -17,6 +17,7 @@
         var gameStarted = false;
         var currentTurn = 1;
         var maxTurns = 6; // ゲームを行う最大ターン数
+        var isNumberSelected = false;
 
         $(document).ready(async function () {
             me = await osql.getMe();
@@ -96,9 +97,14 @@
             console.log(selectedNumber);
             var sql = `INSERT INTO answer (id, answer) VALUES ('${me.id}', ${selectedNumber})`;
             await osql.connect(sql);
+            // 選択済みのコメントを表示し、数字を選択済みとしてマークします
+            document.getElementById('selectedComment').innerHTML = `数字 ${selectedNumber} を選択済み`;
 
-            document.getElementById('selectButton').disabled = true;
-        }
+            isNumberSelected = true;
+
+    // 「決定」（Select）ボタンを選択した後に無効化します
+    document.getElementById('selectButton').disabled = true;
+}
 
         async function evaluateResult() {
             var selectedNumber = parseInt(document.getElementById('numberInput').value);
@@ -163,6 +169,10 @@
     var deleteAnswersSql = `DELETE FROM answer WHERE id = '${me.id}'`;
     await osql.connect(deleteAnswersSql);
 
+     // 選択済みのコメントを消去し、数字が未選択としてマークします
+     document.getElementById('selectedComment').innerHTML = '';
+    isNumberSelected = false;
+
     // ターン数を更新
     currentTurn++;
     var updateTurnSql = `UPDATE game SET turn = ${currentTurn} WHERE roomId = '${roomId}'`;
@@ -178,6 +188,7 @@
 
     // ゲーム再開ボタンを無効化
     document.getElementById('restartButton').disabled = true;
+    document.getElementById('restartButton').disabled = 'none';
 
     // ターン数がmaxTurns以上になったらゲーム終了
     if (currentTurn >= maxTurns) {
@@ -251,6 +262,7 @@
         <label for="numberInput">数字を選んで決定ボタンを押してね（1から10）: </label>
         <input type="number" id="numberInput">
         <button id="selectButton" onclick="selectNumberButton()">決定</button>
+        <div id="selectedComment"></div>
     </div>
     <div id="message"></div>
     <div id="kauntodaun">カウントダウン: <span id="countdown"></span> 秒</div>
