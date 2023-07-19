@@ -82,14 +82,16 @@
             countdownElement.innerHTML = countdownSeconds;
 
             countdownInterval = setInterval(function () {
-                countdownSeconds--;
-                countdownElement.innerHTML = countdownSeconds;
+    countdownSeconds--;
 
-                if (countdownSeconds <= 0) {
-                    clearInterval(countdownInterval);
-                    evaluateResult();
-                }
-            }, 1000);
+    if (countdownSeconds <= 0) {
+        clearInterval(countdownInterval);
+        countdownElement.innerHTML = '0';
+        evaluateResult();
+    } else {
+        countdownElement.innerHTML = countdownSeconds;
+    }
+}, 1000);
         }
 
         async function selectNumberButton() {
