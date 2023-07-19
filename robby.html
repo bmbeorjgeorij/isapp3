@@ -58,7 +58,7 @@
         var sql = `SELECT COUNT(*) AS count FROM Users WHERE roomId = ${roomId}`;
         var result = await osql.connect(sql);
         var numUsers = result[0].count;
-        var url = `room.html?roomId=${roomId}`;
+        var url = `room.html?roomId=4`;
         window.location.href = url;
     } else {
         alert('あなたはこのルームではありません。');
