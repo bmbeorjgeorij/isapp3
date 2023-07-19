@@ -16,6 +16,7 @@
         var countdownSeconds = 15;
         var gameStarted = false;
         var currentTurn = 1;
+        var maxTurns = 5; // ゲームを行う最大ターン数
 
         $(document).ready(async function () {
             me = await osql.getMe();
@@ -54,8 +55,13 @@
                     await osql.connect(insertGameSql);
                 }
                 document.getElementById('turnNumber').innerHTML = currentTurn;
-                startCountdown();
-                displayNumberSelection();
+
+                if (currentTurn < maxTurns) {
+                    startCountdown();
+                    displayNumberSelection();
+                } else {
+                    endGame();
+                }
             } else {
                 setTimeout(waitForGameStart, 1000);
             }
@@ -133,6 +139,15 @@
 
             // ゲーム再開ボタンを有効化
             document.getElementById('restartButton').disabled = false;
+
+            // ターン数を増やす
+            currentTurn++;
+            document.getElementById('turnNumber').innerHTML = currentTurn;
+
+            // ターン数がmaxTurns以上になったらゲーム終了
+            if (currentTurn >= maxTurns) {
+                endGame();
+            }
         }
 
         function displayMessage(message) {
@@ -146,23 +161,56 @@
         }
 
         async function restartGame() {
-            var deleteAnswersSql = `DELETE FROM answer WHERE id = '${me.id}'`;
-            await osql.connect(deleteAnswersSql);
+    var deleteAnswersSql = `DELETE FROM answer WHERE id = '${me.id}'`;
+    await osql.connect(deleteAnswersSql);
 
-            var updateTurnSql = `UPDATE game SET turn = turn + 1 WHERE roomId = '${roomId}'`;
+    var updateTurnSql = `UPDATE game SET turn = turn + 1 WHERE roomId = '${roomId}'`;
+    await osql.connect(updateTurnSql);
+
+    countdownSeconds = 15;  // カウントダウン秒数をリセット
+    startCountdown();
+    document.getElementById('selectButton').disabled = false;
+    document.getElementById('result').innerHTML = '';
+
+    // ゲーム再開ボタンを無効化
+    document.getElementById('restartButton').disabled = true;
+
+    // ターン数を更新
+    currentTurn++;
+    document.getElementById('turnNumber').innerHTML = currentTurn;
+
+    // ターン数がmaxTurns以上になったらゲーム終了
+    if (currentTurn >= maxTurns) {
+        endGame();
+    }
+
+    // ターン数を再表示
+    document.getElementById('turnNumber').innerHTML = currentTurn;
+}
+
+       // 新たなターン情報をサーバーに送信
+       async function updateTurnOnServer(turn) {
+            var updateTurnSql = `UPDATE game SET turn = ${turn} WHERE roomId = '${roomId}'`;
             await osql.connect(updateTurnSql);
+        }
 
-            countdownSeconds = 15;  // カウントダウン秒数をリセット
-            startCountdown();
-            document.getElementById('selectButton').disabled = false;
-            document.getElementById('result').innerHTML = '';
+        // ゲームが終了した後にページをリロードしても再びターン1からゲームをプレイできるようにする
+        window.addEventListener('beforeunload', function() {
+            updateTurnOnServer(1);
+        });
 
-            // ゲーム再開ボタンを無効化
-            document.getElementById('restartButton').disabled = true;
+        async function endGame() {
+            // ゲーム終了メッセージを表示
+            displayMessage('ゲームが終了しました');
+            var resetTurnSql = `UPDATE game SET turn = 1 WHERE roomId = '${roomId}'`;
+            await osql.connect(resetTurnSql);
+            // カウントダウンと数字選択ボタンを非表示にする
+            document.getElementById('countdown').style.display = 'none';
+            document.getElementById('numberInput').style.display = 'none';
+            document.getElementById('selectButton').style.display = 'none';
 
-            // ターン数を更新
-            currentTurn++;
-            document.getElementById('turnNumber').innerHTML = currentTurn;
+            // ゲーム再開ボタンを非表示にする
+            document.getElementById('restartButton').style.display = 'none';
         }
     </script>
 </head>
@@ -195,10 +243,6 @@
     </div>
 </body>
 </html>
-
-
-    
-    
     
     
     
