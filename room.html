@@ -39,6 +39,8 @@
         async function waitForGameStart() {
             var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId = '${roomId}'`;
             var result = await osql.connect(sql);
+            var deleteAnswersSql = `DELETE FROM answer WHERE id = '${me.id}'`;
+            await osql.connect(deleteAnswersSql);
             var numUsers = result[0].numUsers;
             if (numUsers >= 2) {
                 gameStarted = true;
@@ -120,13 +122,9 @@
             // Check if the game has started or not
             if (gameStarted) {
                 displayMessage('他の参加者とかぶっていないので勝ち');
-            } else {
-                displayMessage('結果まで');
-            }
+            } 
         }
     }
-
-
             var allResultSql = `
                 SELECT u.fname, u.lname, a.answer
                 FROM Users u

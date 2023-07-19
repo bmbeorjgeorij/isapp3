@@ -74,7 +74,7 @@ function getCurrentRoomId() {
     var roomMessageElement = document.getElementById('room-message');
     if (roomMessageElement) {
         if (roomId && roomId >= 1 && roomId <= roomNames.length) {
-            roomMessageElement.textContent = `あなたは「${roomNames[roomId - 1]}」に入ってください。`;
+            roomMessageElement.textContent = `あなたは「${roomNames[roomId - 1]}」に入ってください。一緒に遊ぶ人みんなで入って下さい。`;
             enableJoinButton(roomId);  // 指定されたルームにのみ入室可能なボタンを有効化
             disableRoomLinksExcept(roomId);
         } else {
