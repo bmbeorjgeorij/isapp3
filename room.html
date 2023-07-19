@@ -40,11 +40,10 @@
             var sql = `SELECT COUNT(*) AS numUsers FROM Users WHERE roomId = '${roomId}'`;
             var result = await osql.connect(sql);
             var numUsers = result[0].numUsers;
-
             if (numUsers >= 2) {
                 gameStarted = true;
 
-                displayMessage('ゲーム開始です');
+                displayMessage('ゲーム開始まで');
                 var sql = `SELECT turn FROM game WHERE roomId = '${roomId}'`;
                 var result = await osql.connect(sql);
                 if (result.length > 0) {
@@ -116,11 +115,17 @@
                 var matchCount = result[0].count;
 
                 if (matchCount > 0) {
-                    displayMessage('他の参加者とかぶっているので負け');
-                } else {
-                    displayMessage('他の参加者とかぶっていないので勝ち');
-                }
+            displayMessage('他の参加者とかぶっているので負け');
+        } else {
+            // Check if the game has started or not
+            if (gameStarted) {
+                displayMessage('他の参加者とかぶっていないので勝ち');
+            } else {
+                displayMessage('結果まで');
             }
+        }
+    }
+
 
             var allResultSql = `
                 SELECT u.fname, u.lname, a.answer
@@ -179,8 +184,10 @@
     // ターン数がmaxTurns以上になったらゲーム終了
     if (currentTurn >= maxTurns) {
         endGame();
-    }
-}
+    }else {
+        // Game hasn't started yet, so reset the message to "ゲーム開始まで"
+        displayMessage('ゲーム結果開示まで');
+}}
 
        // 新たなターン情報をサーバーに送信
        async function updateTurnOnServer(turn) {
@@ -202,6 +209,32 @@
             document.getElementById('selectButton').style.display = 'none';
             // ゲーム再開ボタンを非表示にする
             document.getElementById('restartButton').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('kauntodaun').style.display = 'none';
+            document.getElementById('l').style.display = 'none';
+            document.getElementById('turnNumber').style.display = 'none';
+            document.getElementById('w').style.display = 'none';
+            var iti= `delete from answer where answer = '1'`;
+            var ni= `delete from answer where answer = '2'`;
+            var san= `delete from answer where answer = '3'`;
+            var yon= `delete from answer where answer = '4'`;
+            var go= `delete from answer where answer = '5'`;
+            var roku= `delete from answer where answer = '6'`;
+            var nana= `delete from answer where answer = '7'`;
+            var hati= `delete from answer where answer = '8'`;
+            var kyuu= `delete from answer where answer = '9'`;
+            var juu= `delete from answer where answer = '10'`;
+            await osql.connect(iti);
+            await osql.connect(ni);
+            await osql.connect(san);
+            await osql.connect(yon);
+            await osql.connect(go);
+            await osql.connect(roku);
+            await osql.connect(nana);
+            await osql.connect(hati);
+            await osql.connect(kyuu);
+            await osql.connect(juu);
+
         }
     </script>
 </head>
@@ -213,19 +246,19 @@
     </div>
     <hr>
     <p>ユーザー名: <span id="username"></span></p>
-    <p>現在のターン: <span id="turnNumber"></span></p>
+    <p id="w">現在のターン: <span id="turnNumber"></span></p>
     <div id="numUsers"></div>
     <br>
-    <div>
-        <label for="numberInput">数字を選んでください（1から10）: </label>
+    <div id="l">
+        <label for="numberInput">数字を選んで決定ボタンを押してね（1から10）: </label>
         <input type="number" id="numberInput">
-        <button id="selectButton" onclick="selectNumberButton()">選択</button>
+        <button id="selectButton" onclick="selectNumberButton()">決定</button>
     </div>
     <div id="message"></div>
-    <div>カウントダウン: <span id="countdown"></span> 秒</div>
+    <div id="kauntodaun">カウントダウン: <span id="countdown"></span> 秒</div>
     <div id="result"></div>
     <div id="gameControls">
-        <button id="restartButton" onclick="restartGame()" disabled>もう一度プレイする</button>
+        <button id="restartButton" onclick="restartGame()" disabled>もう一度遊ぶ</button>
     </div>
     <div class="image-container">
         <img src="character_takenoko.png" alt="写真" width="300" height="200">
