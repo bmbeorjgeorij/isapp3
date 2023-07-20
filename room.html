@@ -179,7 +179,7 @@
         function displayNumberSelection() {
             var numberInput = document.getElementById('numberInput');
             numberInput.setAttribute('min', '1');
-            numberInput.setAttribute('max', '10');
+            numberInput.setAttribute('max', '5');
         }
 
         async function restartGame() {
@@ -244,21 +244,11 @@
             var san= `delete from answer where answer = '3'`;
             var yon= `delete from answer where answer = '4'`;
             var go= `delete from answer where answer = '5'`;
-            var roku= `delete from answer where answer = '6'`;
-            var nana= `delete from answer where answer = '7'`;
-            var hati= `delete from answer where answer = '8'`;
-            var kyuu= `delete from answer where answer = '9'`;
-            var juu= `delete from answer where answer = '10'`;
             await osql.connect(iti);
             await osql.connect(ni);
             await osql.connect(san);
             await osql.connect(yon);
             await osql.connect(go);
-            await osql.connect(roku);
-            await osql.connect(nana);
-            await osql.connect(hati);
-            await osql.connect(kyuu);
-            await osql.connect(juu);
 
         }
     </script>
@@ -275,7 +265,7 @@
     <div id="numUsers"></div>
     <br>
     <div id="l">
-        <label for="numberInput">数字を選んで決定ボタンを押してね（1から10）: </label>
+        <label for="numberInput">数字を選んで決定ボタンを押してね（1から5）: </label>
         <input type="number" id="numberInput">
         <button id="selectButton" onclick="selectNumberButton()">決定</button>
         <div id="selectedComment"></div>
