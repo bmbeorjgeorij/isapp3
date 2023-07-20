@@ -143,13 +143,26 @@
     `;
             var allResult = await osql.connect(allResultSql);
 
-            var resultText = '<h2>結果</h2><ul>';
-            for (var i = 0; i < allResult.length; i++) {
-                resultText += `<li>${allResult[i].username}：${allResult[i].answer}</li>`;
-    }
-            resultText += '</ul>';
-            document.getElementById('result').innerHTML = resultText;
+            var resultTable = document.createElement('table');
+    resultTable.innerHTML = `
+        <tr>
+            <th>ユーザー名</th>
+            <th>選択した数字</th>
+        </tr>
+    `;
 
+    for (var i = 0; i < allResult.length; i++) {
+        resultTable.innerHTML += `
+            <tr>
+                <td>${allResult[i].username}</td>
+                <td>${allResult[i].answer}</td>
+            </tr>
+        `;
+    }
+
+    var resultContainer = document.getElementById('result');
+    resultContainer.innerHTML = '';
+    resultContainer.appendChild(resultTable);
             // ゲーム再開ボタンを有効化
             document.getElementById('restartButton').disabled = false;
 
@@ -269,7 +282,8 @@
     </div>
     <div id="message"></div>
     <div id="kauntodaun">カウントダウン: <span id="countdown"></span> 秒</div>
-    <div id="result"></div>
+    <div id="result">
+</div>
     <div id="gameControls">
         <button id="restartButton" onclick="restartGame()" disabled>もう一度遊ぶ</button>
     </div>
