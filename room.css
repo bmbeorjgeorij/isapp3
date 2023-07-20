@@ -108,10 +108,11 @@ table {
   margin: 0 auto;
   border-collapse: collapse;
   width: 80%;
+  background-color: #FFF;
 }
 
 th, td {
-  border: 2px solid #FF6F61;
+  border: 2px solid #000000;
   padding: 8px;
   text-align: center;
 }
